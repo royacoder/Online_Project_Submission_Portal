@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto" id="nav-auth"></ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container p-4 fade-in">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a href="guide-dashboard.html" class="list-group-item active"><i class="fas fa-project-diagram me-2"></i>My Projects</a>
+                    <a href="#" class="list-group-item" onclick="showGuideReports(); return false;"><i class="fas fa-chart-bar me-2"></i>Reports</a>
+                    <a href="notifications.html" class="list-group-item d-flex align-items-center"><i class="fas fa-bell me-2"></i>Notifications<span class="sidebar-notif-badge badge bg-danger rounded-pill ms-auto" style="display:none;">0</span></a>
+                    <a href="profile.html" class="list-group-item"><i class="fas fa-user me-2"></i>My Profile</a>
+                    <a href="#" class="list-group-item text-danger" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <h2><i class="fas fa-chalkboard-teacher me-3" style="color:var(--primary)"></i>Guide Dashboard</h2>
+                <div id="projects-container" class="loading-text">Loading dashboard data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Reason Modal -->
+    <div class="modal fade" id="editReasonModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-paper-plane me-2" style="color:var(--primary)"></i>Request Resubmission from HOD</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color:var(--text-muted);font-size:0.9rem;">Please provide a reason for requesting the resubmission option. This will be visible to the HOD.</p>
+                    <input type="hidden" id="edit-reason-project-id">
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <textarea id="edit-reason-text" class="form-control" rows="3" placeholder="e.g. Student needs to update the tech stack and add missing documentation..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditRequest()"><i class="fas fa-paper-plane me-2"></i>Send Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Reports Modal -->
+    <div class="modal fade" id="guideReportsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-chart-bar me-2" style="color:var(--warning)"></i>My Teams — Project Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+                        <div class="d-flex gap-2">
+                            <select id="guide-report-semester-filter" class="form-select w-auto" onchange="renderGuideReports()">
+                                <option value="">All Semesters</option>
+                                <option value="Semester 1">Semester 1</option>
+                                <option value="Semester 2">Semester 2</option>
+                                <option value="Semester 3">Semester 3</option>
+                                <option value="Semester 4">Semester 4</option>
+                                <option value="Semester 5">Semester 5</option>
+                                <option value="Semester 6">Semester 6</option>
+                                <option value="Semester 7">Semester 7</option>
+                                <option value="Semester 8">Semester 8</option>
+                            </select>
+                            <select id="guide-report-status-filter" class="form-select w-auto" onchange="renderGuideReports()">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="resubmit">Resubmit</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="fetchGuideReportData()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="exportGuideReportCsv()">
+                                <i class="fas fa-file-csv me-1"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Semester</th>
+                                    <th>Team</th>
+                                    <th>Members</th>
+                                    <th>Project Title</th>
+                                    <th>Status</th>
+                                    <th>Marks</th>
+                                    <th>Feedback</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guide-report-body">
+                                <tr><td colspan="8" class="text-center">Loading report data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth('guide');
+
+        async function loadTeams() {
+            const req = await fetch(`${API_URL}?action=getGuideTeams`);
+            const res = await req.json();
+            const container = document.getElementById('projects-container');
+            if (res.success && res.teams.length > 0) {
+                container.innerHTML = res.teams.map(t => {
+                    const membersHtml = t.members.map(m => 
+                        `<li class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--card-border);"><i class="fas fa-user-graduate" style="color:var(--primary);width:16px"></i><strong>${m.username}</strong> (${m.roll_number}) — ${m.email} ${m.is_leader ? '<span class="badge bg-primary ms-1">Leader</span>' : ''}</li>`
+                    ).join('');
+
+                    let projectSection = '';
+                    if (t.project) {
+                        const p = t.project;
+                        projectSection = `
+                            <hr>
+                            <h5>Project Submission</h5>
+                            <p><strong>Title:</strong> ${p.title}</p>
+                            <p><strong>Semester:</strong> <span class="badge bg-primary">${p.semester || 'N/A'}</span></p>
+                            <p><strong>Abstract:</strong> ${p.abstract}</p>
+                            <p><strong>Tech Stack:</strong> ${p.tech_stack}</p>
+                             ${p.screenshot_path ? `
+                                <div class="mb-3">
+                                    <strong>Screenshot:</strong><br>
+                                    <img src="${SCREENSHOTS_BASE_URL}/${p.screenshot_path}" 
+                                         class="mt-2 rounded border" 
+                                         style="max-width:200px; cursor:pointer; transition:transform 0.2s;" 
+                                         onclick="viewFullScreenshot('${SCREENSHOTS_BASE_URL}/${p.screenshot_path}')"
+                                         onmouseover="this.style.transform='scale(1.05)'"
+                                         onmouseout="this.style.transform='scale(1)'"
+                                         alt="Project Screenshot">
+                                </div>
+                             ` : '<p class="text-muted"><i class="fas fa-image me-1"></i> No screenshot provided</p>'}
+                            <p><strong>Status:</strong> <span class="badge bg-info text-dark">${p.status}</span>
+                                ${p.edit_request ? '<span class="badge bg-secondary ms-2" style="font-size:0.7rem"><i class="fas fa-clock me-1"></i>Edit Requested from HOD</span>' : ''}
+                            </p>
+                            ${p.edit_reason ? `<p class="text-muted fw-light fst-italic" style="font-size: 0.8rem; margin-top:-10px;">Reason: ${escapeHtml(p.edit_reason)}</p>` : ''}
+                            ${p.github_link ? `<p><a href="${p.github_link}" target="_blank">GitHub</a></p>` : ''}
+                            ${p.website_link ? `<p><strong>Website:</strong> <a href="${escapeHtml(p.website_link)}" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt me-1"></i>${escapeHtml(p.website_link)}</a></p>` : ''}
+                            ${p.file_path ? `<p><a href="${FILES_BASE_URL}/${p.file_path.split('/').pop()}" download>Download File</a></p>` : ''}
+                            
+                            <hr>
+                            <div class="mb-3 d-flex gap-2">
+                                <button onclick="changeStatus(${p.id}, 'approved')" class="btn btn-sm btn-success" ${p.status === 'approved' ? 'disabled' : ''}>Approve</button>
+                                <button onclick="changeStatus(${p.id}, 'resubmit')" class="btn btn-sm btn-warning" ${p.status === 'approved' ? 'disabled title="Only HOD can give resubmit option after approval"' : ''}>Resubmit</button>
+                                <button onclick="changeStatus(${p.id}, 'rejected')" class="btn btn-sm btn-danger" ${p.status === 'approved' ? 'disabled' : ''}>Reject</button>
+                            </div>
+
+                            ${(p.status === 'approved' && !p.edit_request) ? `
+                            <div class="mb-3">
+                                <button class="btn btn-sm btn-outline-info" onclick="requestEdit(${p.id})">
+                                    <i class="fas fa-paper-plane me-1"></i>Request Resubmission Option from HOD
+                                </button>
+                            </div>
+                            ` : ''}
+                            
+                            <h5 class="mt-3">Evaluate</h5>
+                            <form onsubmit="submitEval(event, ${p.id})">
+                                <div class="mb-2">
+                                    <input type="number" id="marks-${p.id}" class="form-control" placeholder="Marks (e.g. 85.50)" step="0.01" value="${p.evaluation ? p.evaluation.marks : ''}" required>
+                                </div>
+                                <div class="mb-2">
+                                    <textarea id="feedback-${p.id}" class="form-control" placeholder="Feedback" required>${p.evaluation ? p.evaluation.feedback : ''}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Save Feedback</button>
+                            </form>
+                        `;
+                    } else {
+                        projectSection = `
+                            <hr>
+                            <div class="alert alert-warning mb-0">No project submitted by this team yet.</div>
+                        `;
+                    }
+
+                    return `
+                    <div class="card mb-4">
+                        <div class="card-header-accent">
+                            <div class="header-icon"><i class="fas fa-users"></i></div>
+                            <div>
+                                <h5 style="margin:0">Team: ${t.name}</h5>
+                                ${t.is_solo ? '<span class="badge bg-light" style="font-size:0.7rem">Solo</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Team Members</h5>
+                            <ul class="list-unstyled">${membersHtml}</ul>
+                            ${projectSection}
+                        </div>
+                    </div>
+                `}).join('');
+            } else {
+                container.innerHTML = `<div class="empty-state">
+                    <i class="fas fa-inbox empty-icon"></i>
+                    <p>No teams have been assigned to you yet.</p>
+                    <small style="opacity:0.5">Your HOD will assign student teams to you soon.</small>
+                </div>`;
+            }
+        }
+
+        async function changeStatus(id, status) {
+            const fd = new FormData();
+            fd.append('project_id', id);
+            fd.append('status', status);
+            const req = await fetch(`${API_URL}?action=updateProjectStatus`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Status updated', 'success');
+                loadTeams();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        async function submitEval(e, id) {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('project_id', id);
+            fd.append('marks', document.getElementById(`marks-${id}`).value);
+            fd.append('feedback', document.getElementById(`feedback-${id}`).value);
+            const req = await fetch(`${API_URL}?action=evaluateProject`, { method: 'POST', body: fd });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Evaluation saved!', 'success');
+            } else {
+                showToast('Error: ' + res.message, 'error');
+            }
+        }
+
+        async function requestEdit(projectId) {
+            document.getElementById('edit-reason-project-id').value = projectId;
+            document.getElementById('edit-reason-text').value = '';
+            new bootstrap.Modal(document.getElementById('editReasonModal')).show();
+        }
+
+        async function submitEditRequest() {
+            const projectId = document.getElementById('edit-reason-project-id').value;
+            const reason = document.getElementById('edit-reason-text').value.trim();
+            if (!reason) {
+                showToast('Please enter a reason before submitting.', 'error');
+                return;
+            }
+            const fd = new FormData();
+            fd.append('project_id', projectId);
+            fd.append('reason', reason);
+            const req = await fetch(`${API_URL}?action=requestEditOption`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Edit Request sent to HOD', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('editReasonModal')).hide();
+                loadTeams();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        // ---- Guide Reports ----
+        let guideReportData = [];
+
+        async function showGuideReports() {
+            const modal = new bootstrap.Modal(document.getElementById('guideReportsModal'));
+            modal.show();
+            await fetchGuideReportData();
+        }
+
+        async function fetchGuideReportData() {
+            const tbody = document.getElementById('guide-report-body');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Loading reports...</td></tr>';
+            try {
+                const req = await fetch(`${API_URL}?action=getGuideProjectReport`, { credentials: 'include' });
+                const res = await req.json();
+                if (res.success) {
+                    guideReportData = res.data;
+                    renderGuideReports();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">${res.message}</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Failed to fetch report data</td></tr>';
+            }
+        }
+
+        function getGuideBadgeClass(status) {
+            switch(status) {
+                case 'approved': return 'bg-success';
+                case 'rejected': return 'bg-danger';
+                case 'resubmit': return 'bg-info';
+                case 'edit_option': return 'bg-secondary';
+                default: return 'bg-warning text-dark';
+            }
+        }
+
+        function renderGuideReports() {
+            const statusFilter = document.getElementById('guide-report-status-filter').value;
+            const semFilter = document.getElementById('guide-report-semester-filter') ? document.getElementById('guide-report-semester-filter').value : '';
+            const tbody = document.getElementById('guide-report-body');
+            let filtered = guideReportData;
+            if (statusFilter) filtered = filtered.filter(r => (r.status || 'pending') === statusFilter);
+            if (semFilter) filtered = filtered.filter(r => (r.semester || '') === semFilter);
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No projects match the selected filters.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(r => `
+                <tr>
+                    <td><span class="badge bg-info">${r.academic_year || 'N/A'}</span></td>
+                    <td><span class="badge bg-primary">${r.semester || 'N/A'}</span></td>
+                    <td><strong>${r.team_name}</strong></td>
+                    <td><small>${r.members || '-'}</small></td>
+                    <td>${r.project_title || '<em class="text-muted">Not submitted</em>'}</td>
+                    <td><span class="badge ${getGuideBadgeClass(r.status)}">${r.status || 'pending'}</span></td>
+                    <td>${r.marks != null ? `<strong class="text-success">${r.marks}</strong>/100` : '<span class="text-muted">-</span>'}</td>
+                    <td><small>${r.feedback ? escapeHtml(r.feedback) : '<span class="text-muted">-</span>'}</small></td>
+                </tr>
+            `).join('');
+        }
+
+        function exportGuideReportCsv() {
+            const statusFilter = document.getElementById('guide-report-status-filter').value;
+            const semFilter = document.getElementById('guide-report-semester-filter') ? document.getElementById('guide-report-semester-filter').value : '';
+            let filtered = guideReportData;
+            if (statusFilter) filtered = filtered.filter(r => (r.status || 'pending') === statusFilter);
+            if (semFilter) filtered = filtered.filter(r => (r.semester || '') === semFilter);
+            if (filtered.length === 0) { showToast('No data to export.', 'error'); return; }
+            const csvEscape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const headers = ['Year', 'Semester', 'Team', 'Members', 'Project Title', 'Status', 'Marks', 'Feedback'];
+            const rows = filtered.map(r => [
+                csvEscape(r.academic_year || 'N/A'),
+                csvEscape(r.semester || 'N/A'),
+                csvEscape(r.team_name),
+                csvEscape(r.members || ''),
+                csvEscape(r.project_title || ''),
+                csvEscape(r.status || 'pending'),
+                csvEscape(r.marks != null ? r.marks : ''),
+                csvEscape(r.feedback || '')
+            ].join(','));
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const statusLabel = statusFilter || 'All_Status';
+            a.download = `Guide_Report_${statusLabel}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        loadTeams();
+
+        function viewFullScreenshot(src) {
+            document.getElementById('fullScreenshotImg').src = src;
+            new bootstrap.Modal(document.getElementById('screenshotModal')).show();
+        }
+    </script>
+</body>
+
+<!-- Screenshot Modal -->
+<div class="modal fade" id="screenshotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="background:transparent; border:none;">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute" style="top:-30px; right:0;" data-bs-dismiss="modal" aria-label="Close"></button>
+                <img id="fullScreenshotImg" src="" alt="Full Screenshot" style="width:100%; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

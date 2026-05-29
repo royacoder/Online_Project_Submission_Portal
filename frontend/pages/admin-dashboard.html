@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .password-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .password-text {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .btn-eye {
+            background: none;
+            border: none;
+            padding: 0 4px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .btn-eye:hover { color: var(--primary); }
+        .cursor-pointer { cursor: pointer; }
+        .fa-rotate-180 { transform: rotate(180deg); }
+        .transition-all { transition: all 0.3s ease; }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto" id="nav-auth"></ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container p-4 fade-in">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h2><i class="fas fa-shield-alt me-3" style="color:var(--primary)"></i>Admin Dashboard</h2>
+                    <div class="action-bar mb-0">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+                            <i class="fas fa-plus me-2"></i>Add Department
+                        </button>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createHodModal" onclick="loadDeptsForHod()">
+                            <i class="fas fa-user-plus me-2"></i>Create HOD
+                        </button>
+                        <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#createClerkModal">
+                            <i class="fas fa-user-edit me-2"></i>Create Clerk
+                        </button>
+                        <button class="btn btn-secondary text-white" data-bs-toggle="modal" data-bs-target="#createStudentModal" onclick="loadDeptsForStudent()">
+                            <i class="fas fa-user-graduate me-2"></i>Create Student
+                        </button>
+                        <button class="btn btn-warning" onclick="showProjectReports()">
+                            <i class="fas fa-chart-bar me-2"></i>Reports
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4" id="stats-container">
+                    <!-- Stats will be injected here -->
+                </div>
+
+                <div class="card">
+                    <div class="card-header-accent">
+                        <div class="header-icon"><i class="fas fa-building"></i></div>
+                        <h5>Departments & HODs</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Status</th>
+                                        <th>Active HOD</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dept-table-body">
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">Loading department data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create HOD Modal -->
+    <div class="modal fade" id="createHodModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-tie me-2" style="color:var(--success)"></i>Create HOD Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="hod-form">
+                        <div class="mb-3">
+                            <label>Name</label>
+                            <input type="text" id="hod-name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email</label>
+                            <input type="email" id="hod-email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" id="hod-password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Department</label>
+                            <select id="hod-department" class="form-select" required></select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Clerk Modal -->
+    <div class="modal fade" id="createClerkModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2" style="color:var(--primary)"></i>Create Clerk Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="clerk-form">
+                        <div class="mb-3">
+                            <label>Full Name</label>
+                            <input type="text" id="clerk-name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email</label>
+                            <input type="email" id="clerk-email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" id="clerk-password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-info text-white w-100">Create Clerk Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Student Modal -->
+    <div class="modal fade" id="createStudentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-graduate me-2" style="color:var(--primary)"></i>Create Student Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="student-form">
+                        <div class="mb-3">
+                            <label>Full Name</label>
+                            <input type="text" id="student-name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email</label>
+                            <input type="email" id="student-email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Roll Number / ID</label>
+                            <input type="text" id="student-roll" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" id="student-password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Department</label>
+                            <select id="student-department" class="form-select" required></select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Academic Year</label>
+                            <select id="student-year" class="form-select" required>
+                                <option value="2024-2025">2024-2025</option>
+                                <option value="2025-2026">2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-secondary text-white w-100">Create Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Department Modal -->
+    <div class="modal fade" id="addDeptModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-building me-2" style="color:var(--primary)"></i>Add New Department</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="dept-form">
+                        <div class="mb-3">
+                            <label>Department Name</label>
+                            <input type="text" id="dept-name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Description</label>
+                            <textarea id="dept-desc" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Department</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users List Modal -->
+    <div class="modal fade" id="usersModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">All Registered Users</h5>
+                    <select id="user-dept-filter" class="form-select ms-auto w-auto me-3" onchange="showUsers()">
+                        <option value="">All Departments</option>
+                    </select>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Detail / Password</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Users will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change HOD Modal -->
+    <div class="modal fade" id="changeHodModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2" style="color:var(--warning)"></i>Edit HOD for <span id="change-hod-dept-name"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="change-hod-dept-id">
+
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs mb-3" id="hodEditTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="tab-existing-btn" onclick="switchHodTab('existing')">
+                                <i class="fas fa-users me-2"></i>Assign Existing Teaching Staff
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="tab-new-btn" onclick="switchHodTab('new')">
+                                <i class="fas fa-user-plus me-2"></i>Create New HOD Account
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab: Assign Existing Staff -->
+                    <div id="tab-existing" class="hod-tab-pane">
+                        <div class="alert alert-info d-flex align-items-center gap-2 mb-3" style="font-size:0.9rem">
+                            <i class="fas fa-info-circle"></i>
+                            Select an existing teaching staff member from this department to assign as HOD.
+                            Their role will automatically be updated to HOD.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Teaching Staff</label>
+                            <select id="existing-staff-select" class="form-select form-select-lg">
+                                <option value="" disabled selected>Loading staff...</option>
+                            </select>
+                            <div id="no-staff-msg" class="text-muted mt-2 d-none">
+                                <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                No teaching staff registered for this department yet.
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-success w-100 btn-lg" onclick="assignExistingStaffAsHod()">
+                            <i class="fas fa-check-circle me-2"></i>Assign as HOD
+                        </button>
+                    </div>
+
+                    <!-- Tab: Create New HOD -->
+                    <div id="tab-new" class="hod-tab-pane d-none">
+                        <form id="change-hod-form">
+                            <div class="mb-3">
+                                <label class="form-label">New HOD Name</label>
+                                <input type="text" id="new-hod-name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New HOD Email</label>
+                                <input type="email" id="new-hod-email" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password</label>
+                                <input type="password" id="new-hod-password" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">Update HOD</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watch Details Modal (Drill-down) -->
+    <div class="modal fade" id="watchDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-sitemap me-2" style="color:#38bdf8"></i>Watch Hierarchy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="watch-details-container">
+                    <!-- Drill-down content will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Reports Modal -->
+    <div class="modal fade" id="projectReportsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-chart-bar me-2" style="color:var(--warning)"></i>Department Projects Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="d-flex gap-2">
+                            <select id="report-dept-filter" class="form-select w-auto" onchange="renderProjectReports()">
+                                <option value="">All Departments</option>
+                            </select>
+                            <select id="report-year-filter" class="form-select w-auto" onchange="renderProjectReports()">
+                                <option value="">All Years</option>
+                            </select>
+                            <select id="report-semester-filter" class="form-select w-auto" onchange="renderProjectReports()">
+                                <option value="">All Semesters</option>
+                                <option value="Semester 1">Semester 1</option>
+                                <option value="Semester 2">Semester 2</option>
+                                <option value="Semester 3">Semester 3</option>
+                                <option value="Semester 4">Semester 4</option>
+                                <option value="Semester 5">Semester 5</option>
+                                <option value="Semester 6">Semester 6</option>
+                                <option value="Semester 7">Semester 7</option>
+                                <option value="Semester 8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="fetchProjectReportData()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="exportAdminReportCsv()">
+                                <i class="fas fa-file-csv me-1"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Year</th>
+                                    <th>Semester</th>
+                                    <th>Team</th>
+                                    <th>Project Title</th>
+                                    <th>Screenshot</th>
+                                    <th>Members</th>
+                                    <th>Guide</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="project-reports-body">
+                                <tr><td colspan="8" class="text-center">Loading report data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Email Modal (must be BEFORE the script so getElementById finds it at parse time) -->
+    <div class="modal fade" id="changeEmailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-envelope-open-text me-2" style="color:var(--primary)"></i>Change User Email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="change-email-form">
+                    <input type="hidden" id="change-email-user-id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="change-email-username" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Email</label>
+                            <input type="text" id="change-email-current" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Email Address</label>
+                            <input type="email" id="change-email-new" class="form-control" required placeholder="Enter new email address">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Email</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth('admin');
+
+        async function loadAdminData() {
+            try {
+                const req = await fetch(`${API_URL}?action=getAdminStats`, { credentials: 'include' });
+                const res = await req.json();
+                console.log("Admin Dashboard Data:", res);
+
+                if (res.success) {
+                    const stats = res.stats;
+
+                    // Update Stats Cards
+                    const statsContainer = document.getElementById('stats-container');
+                    statsContainer.innerHTML = `
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card accent-primary" onclick="showUsers()" style="cursor:pointer;">
+                                <div class="card-body">
+                                    <h6>Total Users</h6>
+                                    <h3>${stats.users}</h3>
+                                    <i class="fas fa-users stat-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card accent-success">
+                                <div class="card-body">
+                                    <h6>Active HODs</h6>
+                                    <h3>${stats.hods_count}</h3>
+                                    <i class="fas fa-user-shield stat-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card accent-info" onclick="window.location.hash='tab-clerks'; showUsers('clerk')" style="cursor:pointer">
+                                <div class="card-body">
+                                    <h6>Active Clerks</h6>
+                                    <h3>${stats.clerks_count || 0}</h3>
+                                    <i class="fas fa-user-edit stat-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card accent-warning">
+                                <div class="card-body">
+                                    <h6>Departments</h6>
+                                    <h3>${stats.departments_count}</h3>
+                                    <i class="fas fa-building stat-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Update Department Table
+                    const tableBody = document.getElementById('dept-table-body');
+                    tableBody.innerHTML = '';
+
+                    res.stats.departments.forEach(dept => {
+                        const row = document.createElement('tr');
+
+                        // Dept name cell
+                        const tdName = document.createElement('td');
+                        const aName = document.createElement('a');
+                        aName.href = '#';
+                        aName.className = 'text-decoration-none fw-bold';
+                        aName.textContent = dept.name;
+                        aName.onclick = (e) => {
+                            e.preventDefault();
+                            showWatchDetails(dept.name);
+                        };
+                        tdName.appendChild(aName);
+                        row.appendChild(tdName);
+
+                        // Dept Status cell
+                        const tdStatus = document.createElement('td');
+                        const isActive = dept.is_active === 1;
+                        tdStatus.innerHTML = isActive 
+                            ? '<span class="badge bg-success">Active</span>' 
+                            : '<span class="badge bg-secondary">Inactive</span>';
+                        row.appendChild(tdStatus);
+
+                        // HOD name cell
+                        const tdHod = document.createElement('td');
+                        tdHod.innerHTML = dept.hod_name ? dept.hod_name : '<span class="text-muted">Not Assigned</span>';
+                        row.appendChild(tdHod);
+
+                        // Actions cell
+                        const tdActions = document.createElement('td');
+                        tdActions.className = 'd-flex gap-2';
+                        
+                        const btnChange = document.createElement('button');
+                        btnChange.className = 'btn btn-sm btn-outline-warning';
+                        btnChange.innerHTML = '<i class="fas fa-user-edit"></i>';
+                        btnChange.title = 'Change HOD';
+                        btnChange.onclick = () => openChangeHodModal(dept.id, dept.name);
+                        tdActions.appendChild(btnChange);
+
+                        const btnToggle = document.createElement('button');
+                        const isActiveToggle = dept.is_active === 1;
+                        btnToggle.className = isActiveToggle ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success';
+                        btnToggle.innerHTML = isActiveToggle ? '<i class="fas fa-ban"></i>' : '<i class="fas fa-check"></i>';
+                        btnToggle.title = isActiveToggle ? 'Deactivate Dept' : 'Activate Dept';
+                        btnToggle.onclick = () => toggleDeptStatus(dept.id, isActiveToggle ? 0 : 1);
+                        tdActions.appendChild(btnToggle);
+
+                        row.appendChild(tdActions);
+
+                        tableBody.appendChild(row);
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load admin dashboard:", err);
+            }
+        }
+
+        loadAdminData();
+
+        document.getElementById('dept-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('name', document.getElementById('dept-name').value);
+            fd.append('description', document.getElementById('dept-desc').value);
+
+            const req = await fetch(`${API_URL}?action=createDepartment`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+            });
+            const res = await req.json();
+
+            if (res.success) {
+                    showToast('Department added successfully!', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addDeptModal'));
+                    modal.hide();
+                    document.getElementById('dept-form').reset();
+                    loadAdminData();
+                } else {
+                    showToast(res.message, 'error');
+                }
+        });
+
+        async function loadDeptsForHod() {
+            try {
+                const req = await fetch(`${API_URL}?action=getDepartments`);
+                const res = await req.json();
+                const sel = document.getElementById('hod-department');
+                sel.innerHTML = '<option value="" disabled selected>-- Select Department --</option>';
+                if (res.success && res.data.length > 0) {
+                    res.data.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name;
+                        sel.appendChild(opt);
+                    });
+                } else {
+                    sel.innerHTML += '<option value="" disabled>No departments configured in Database</option>';
+                }
+            } catch (err) {
+                console.error('Failed to parse loadDepts:', err);
+                const sel = document.getElementById('hod-department');
+                sel.innerHTML = '<option value="" disabled>Error connecting to Database API</option>';
+            }
+        }
+
+        document.getElementById('hod-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('name', document.getElementById('hod-name').value);
+            fd.append('email', document.getElementById('hod-email').value);
+            fd.append('password', document.getElementById('hod-password').value);
+            fd.append('department_id', document.getElementById('hod-department').value);
+
+            const req = await fetch(`${API_URL}?action=createHod`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+
+            if (res.success) {
+                showToast('HOD created successfully!', 'success');
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('createHodModal'));
+                if (modal) modal.hide();
+                document.getElementById('hod-form').reset();
+                loadAdminData();
+            } else {
+                showToast(res.message, 'error');
+            }
+        });
+
+        async function loadDeptsForStudent() {
+            try {
+                const req = await fetch(`${API_URL}?action=getDepartments`);
+                const res = await req.json();
+                const sel = document.getElementById('student-department');
+                sel.innerHTML = '<option value="" disabled selected>-- Select Department --</option>';
+                if (res.success && res.data.length > 0) {
+                    res.data.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name;
+                        sel.appendChild(opt);
+                    });
+                } else {
+                    sel.innerHTML += '<option value="" disabled>No departments configured in Database</option>';
+                }
+            } catch (err) {
+                console.error('Failed to parse loadDepts:', err);
+                const sel = document.getElementById('student-department');
+                sel.innerHTML = '<option value="" disabled>Error connecting to Database API</option>';
+            }
+        }
+
+        document.getElementById('student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = 'Creating...';
+            
+            const fd = new FormData();
+            fd.append('name', document.getElementById('student-name').value);
+            fd.append('email', document.getElementById('student-email').value);
+            fd.append('roll', document.getElementById('student-roll').value);
+            fd.append('password', document.getElementById('student-password').value);
+            fd.append('department_id', document.getElementById('student-department').value);
+            fd.append('academic_year', document.getElementById('student-year').value);
+
+            try {
+                const req = await fetch(`${API_URL}?action=createStudentByAdmin`, { method: 'POST', body: fd, credentials: 'include' });
+                const res = await req.json();
+                if (res.success) {
+                    showToast('Student account created successfully!', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('createStudentModal')).hide();
+                    document.getElementById('student-form').reset();
+                    loadAdminData();
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (err) {
+                showToast('Network error while creating student', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Create Student';
+            }
+        });
+
+        async function showUsers() {
+            const filterDept = document.getElementById('user-dept-filter').value;
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('usersModal'));
+            const tableBody = document.getElementById('users-table-body');
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">Loading users...</td></tr>';
+            modal.show();
+
+            try {
+                // Also load departments for filter if not already loaded
+                const deptReq = await fetch(`${API_URL}?action=getDepartments`);
+                const deptRes = await deptReq.json();
+                const filterSel = document.getElementById('user-dept-filter');
+                if (deptRes.success && filterSel.options.length <= 1) {
+                    deptRes.data.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.name;
+                        opt.textContent = d.name;
+                        filterSel.appendChild(opt);
+                    });
+                }
+
+                const req = await fetch(`${API_URL}?action=getAllUsers&department=${encodeURIComponent(filterDept)}`, { credentials: 'include' });
+                const res = await req.json();
+
+                if (res.success) {
+                    tableBody.innerHTML = '';
+                    res.users.forEach(user => {
+                        const row = document.createElement('tr');
+
+                        // Name
+                        const tdName = document.createElement('td');
+                        tdName.innerHTML = '<strong>' + user.username + '</strong>';
+                        row.appendChild(tdName);
+
+                        // Email
+                        const tdEmail = document.createElement('td');
+                        tdEmail.textContent = user.email;
+                        row.appendChild(tdEmail);
+
+                        // Role badge
+                        const tdRole = document.createElement('td');
+                        tdRole.innerHTML = '<span class="badge bg-primary">' + user.role + '</span>';
+                        if (user.department_name) {
+                            tdRole.innerHTML += `<br><small class="text-muted">${user.department_name}</small>`;
+                        }
+                        row.appendChild(tdRole);
+
+                        // Status
+                        const tdStatus = document.createElement('td');
+                        const userActive = user.is_active === 1;
+                        tdStatus.innerHTML = userActive 
+                            ? '<span class="badge bg-success">Active</span>' 
+                            : '<span class="badge bg-danger">Inactive</span>';
+                        row.appendChild(tdStatus);
+
+                        // Detail / Password
+                        const tdDetail = document.createElement('td');
+                        const plainPw = user.hod_password || user.student_password;
+                        if (plainPw) {
+                            const pwId = 'pw-user-' + user.id;
+                            const wrapper = document.createElement('div');
+
+                            // For students, show roll number as small label above
+                            if (user.role === 'student' && user.detail) {
+                                const rollLabel = document.createElement('small');
+                                rollLabel.className = 'text-muted d-block';
+                                rollLabel.textContent = 'Roll: ' + user.detail;
+                                wrapper.appendChild(rollLabel);
+                            }
+
+                            const div = document.createElement('div');
+                            div.className = 'password-cell';
+
+                            const span = document.createElement('span');
+                            span.className = 'password-text';
+                            span.id = pwId;
+                            span.textContent = '••••••••';
+                            div.appendChild(span);
+
+                            const btn = document.createElement('button');
+                            btn.className = 'btn-eye';
+                            btn.title = 'Show/Hide Password';
+                            btn.innerHTML = '<i class="fas fa-eye" id="icon-' + pwId + '"></i>';
+                            btn.addEventListener('click', function () { togglePw(pwId, plainPw); });
+                            div.appendChild(btn);
+
+                            wrapper.appendChild(div);
+                            tdDetail.appendChild(wrapper);
+                        } else {
+                            tdDetail.textContent = user.detail || '-';
+                        }
+                        row.appendChild(tdDetail);
+                        
+                        // Actions
+                        const tdActions = document.createElement('td');
+                        if (user.role !== 'admin') {
+                            const userActive = user.is_active === 1;
+                            const btnToggle = document.createElement('button');
+                            btnToggle.className = userActive ? 'btn btn-sm btn-outline-warning' : 'btn btn-sm btn-outline-success';
+                            btnToggle.innerHTML = userActive ? '<i class="fas fa-user-slash"></i>' : '<i class="fas fa-user-check"></i>';
+                            btnToggle.title = userActive ? 'Deactivate User' : 'Activate User';
+                            btnToggle.onclick = () => toggleUserStatus(user.id, user.username, userActive);
+                            tdActions.appendChild(btnToggle);
+
+                            const btnEmail = document.createElement('button');
+                            btnEmail.className = 'btn btn-sm btn-outline-primary ms-1';
+                            btnEmail.innerHTML = '<i class="fas fa-envelope"></i>';
+                            btnEmail.title = 'Change Email';
+                            btnEmail.onclick = () => openChangeEmailModal(user.id, user.username, user.email);
+                            tdActions.appendChild(btnEmail);
+                        }
+                        row.appendChild(tdActions);
+                        
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${res.message}</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Error showing users:", err);
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load users</td></tr>';
+            }
+        }
+
+        async function toggleDeptStatus(id, newStatus) {
+            const action = newStatus === 1 ? 'activate' : 'deactivate';
+            const ok = await showConfirm(`This will ${action} the department. Continue?`, `${action.charAt(0).toUpperCase()+action.slice(1)} Department`);
+            if (!ok) return;
+            const fd = new FormData();
+            fd.append('department_id', id);
+            fd.append('status', newStatus);
+            const req = await fetch(`${API_URL}?action=toggleDepartmentStatus`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast(res.message, 'success');
+                loadAdminData();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        async function deleteHod(userId) {
+            if (userId === -1 || !confirm('Are you sure you want to delete this HOD account?')) return;
+            const fd = new FormData();
+            fd.append('user_id', userId);
+            const req = await fetch(`${API_URL}?action=deleteHod`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                alert('HOD deleted successfully!');
+                loadAdminData();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        async function toggleUserStatus(id, name, currentActive) {
+            const action = currentActive ? 'deactivate' : 'activate';
+            const ok = await showConfirm(`Are you sure you want to ${action} user "${name}"?`, `${action.charAt(0).toUpperCase()+action.slice(1)} User`);
+            if (!ok) return;
+            const fd = new FormData();
+            fd.append('target_user_id', id);
+            fd.append('status', currentActive ? 0 : 1);
+            const req = await fetch(`${API_URL}?action=toggleUserStatus`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast(res.message, 'success');
+                showUsers();
+                loadAdminData();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        function switchHodTab(tab) {
+            document.getElementById('tab-existing').classList.toggle('d-none', tab !== 'existing');
+            document.getElementById('tab-new').classList.toggle('d-none', tab !== 'new');
+            document.getElementById('tab-existing-btn').classList.toggle('active', tab === 'existing');
+            document.getElementById('tab-new-btn').classList.toggle('active', tab === 'new');
+        }
+
+        async function openChangeHodModal(id, name) {
+            document.getElementById('change-hod-dept-id').value = id;
+            document.getElementById('change-hod-dept-name').textContent = name;
+            // Reset to first tab
+            switchHodTab('existing');
+            const modal = new bootstrap.Modal(document.getElementById('changeHodModal'));
+            modal.show();
+            // Load existing teaching staff for this department
+            const sel = document.getElementById('existing-staff-select');
+            const noMsg = document.getElementById('no-staff-msg');
+            sel.innerHTML = '<option value="" disabled selected>Loading teaching staff...</option>';
+            noMsg.classList.add('d-none');
+            try {
+                const req = await fetch(`${API_URL}?action=getTeachingStaffForDept&department_id=${encodeURIComponent(id)}`, { credentials: 'include' });
+                const res = await req.json();
+                if (res.success && res.staff.length > 0) {
+                    sel.innerHTML = '<option value="" disabled selected>-- Select a teaching staff member --</option>';
+                    res.staff.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.user_id;
+                        opt.textContent = `${s.username} (${s.email})`;
+                        sel.appendChild(opt);
+                    });
+                } else {
+                    sel.innerHTML = '<option value="" disabled selected>No teaching staff found</option>';
+                    noMsg.classList.remove('d-none');
+                }
+            } catch (err) {
+                sel.innerHTML = '<option value="" disabled>Error loading staff</option>';
+            }
+        }
+
+        async function assignExistingStaffAsHod() {
+            const deptId = document.getElementById('change-hod-dept-id').value;
+            const guideUserId = document.getElementById('existing-staff-select').value;
+            if (!guideUserId) {
+                showToast('Please select a teaching staff member.', 'error');
+                return;
+            }
+            const selEl = document.getElementById('existing-staff-select');
+            const staffName = selEl.options[selEl.selectedIndex].text;
+            const ok = await showConfirm(`Assign "${staffName}" as HOD for this department? Their current teaching role will be updated.`, 'Confirm HOD Assignment');
+            if (!ok) return;
+            const fd = new FormData();
+            fd.append('department_id', deptId);
+            fd.append('guide_user_id', guideUserId);
+            const req = await fetch(`${API_URL}?action=assignExistingStaffAsHod`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast(res.message, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('changeHodModal')).hide();
+                loadAdminData();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        document.getElementById('change-hod-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('department_id', document.getElementById('change-hod-dept-id').value);
+            fd.append('name', document.getElementById('new-hod-name').value);
+            fd.append('email', document.getElementById('new-hod-email').value);
+            fd.append('password', document.getElementById('new-hod-password').value);
+
+            const req = await fetch(`${API_URL}?action=changeHod`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast('HOD updated successfully!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('changeHodModal')).hide();
+                loadAdminData();
+            } else {
+                showToast(res.message, 'error');
+            }
+        });
+
+        async function showWatchDetails(deptName = '') {
+            const modal = new bootstrap.Modal(document.getElementById('watchDetailsModal'));
+            const container = document.getElementById('watch-details-container');
+            const title = document.querySelector('#watchDetailsModal .modal-title');
+            
+            title.textContent = deptName ? `Structure of ${deptName}` : 'Department Structural Hierarchy';
+            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-info"></div><p class="mt-2">Connecting to structural data...</p></div>';
+            modal.show();
+
+            try {
+                const url = deptName ? `${API_URL}?action=getAdminWatchDetails&department=${encodeURIComponent(deptName)}` : `${API_URL}?action=getAdminWatchDetails`;
+                const req = await fetch(url, { credentials: 'include' });
+                const res = await req.json();
+                
+                if (res.success) {
+                    if (res.data.length === 0) {
+                        container.innerHTML = '<div class="alert alert-info">No structural data found for this department.</div>';
+                        return;
+                    }
+
+                    // Process data
+                    let hodName = '-';
+                    const guides = {};
+                    const unassignedStudents = {}; // team_name -> [students]
+
+                    res.data.forEach(row => {
+                        if (row.hod_name) hodName = row.hod_name;
+                        
+                        if (row.guide_name) {
+                            if (!guides[row.guide_name]) {
+                                guides[row.guide_name] = { name: row.guide_name, squads: {} };
+                            }
+                            if (row.student_name) {
+                                const teamKey = row.team_name || 'Individual';
+                                if (!guides[row.guide_name].squads[teamKey]) {
+                                    guides[row.guide_name].squads[teamKey] = [];
+                                }
+                                guides[row.guide_name].squads[teamKey].push({ name: row.student_name, roll: row.roll_number });
+                            }
+                        } else if (row.student_name) {
+                            // Student/Team with no guide
+                            const teamKey = row.team_name || 'Individual';
+                            if (!unassignedStudents[teamKey]) {
+                                unassignedStudents[teamKey] = [];
+                            }
+                            unassignedStudents[teamKey].push({ name: row.student_name, roll: row.roll_number });
+                        }
+                    });
+
+                    // Render Hierarchy
+                    let html = `<div class="mb-4 p-3 bg-light rounded border">
+                                    <div class="small text-uppercase text-muted fw-bold mb-1">Department HOD</div>
+                                    <div class="h5 mb-0"><i class="fas fa-user-shield text-dark me-2"></i>${hodName}</div>
+                                </div>`;
+                    
+                    html += '<div class="list-group list-group-flush border rounded">';
+                    
+                    // 1. Render Guides
+                    const guideNames = Object.keys(guides).sort();
+                    if (guideNames.length > 0) {
+                        guideNames.forEach(name => {
+                            const guide = guides[name];
+                            const guideId = 'guide-' + btoa(name).replace(/=/g, '');
+                            const teamNames = Object.keys(guide.squads);
+                            
+                            html += `
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center cursor-pointer p-2" 
+                                         onclick="document.getElementById('${guideId}').classList.toggle('d-none'); this.querySelector('.fa-chevron-down').classList.toggle('fa-rotate-180')">
+                                        <div class="h6 mb-0">
+                                            <i class="fas fa-user-tie text-primary me-3"></i>
+                                            <strong>${guide.name}</strong>
+                                            <span class="badge bg-light text-dark ms-2 border">${teamNames.length} Teams</span>
+                                        </div>
+                                        <i class="fas fa-chevron-down text-muted transition-all"></i>
+                                    </div>
+                                    <div id="${guideId}" class="ps-5 d-none mt-2 pb-2">
+                                        ${teamNames.length > 0 ? 
+                                            teamNames.map(teamName => `
+                                                <div class="mb-3">
+                                                    <div class="fw-bold text-info mb-1"><i class="fas fa-users me-2"></i>${teamName}</div>
+                                                    <ul class="list-unstyled ps-4">
+                                                        ${guide.squads[teamName].map(s => `<li><i class="fas fa-user-graduate me-2 text-secondary"></i>${s.name} (${s.roll})</li>`).join('')}
+                                                    </ul>
+                                                </div>
+                                            `).join('')
+                                            : '<div class="text-muted italic ps-4">No students currently assigned to this guide.</div>'
+                                        }
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += '<div class="list-group-item text-center py-3 text-muted">No teaching staff (guides) registered in this department.</div>';
+                    }
+
+                    // 2. Render Unassigned Students/Teams (if any)
+                    const unassignedTeamNames = Object.keys(unassignedStudents);
+                    if (unassignedTeamNames.length > 0) {
+                        html += `
+                            <div class="list-group-item bg-warning bg-opacity-10">
+                                <div class="d-flex justify-content-between align-items-center cursor-pointer p-2" 
+                                     onclick="document.getElementById('unassigned-section').classList.toggle('d-none'); this.querySelector('.fa-chevron-down').classList.toggle('fa-rotate-180')">
+                                    <div class="h6 mb-0 text-warning-emphasis">
+                                        <i class="fas fa-exclamation-triangle me-3"></i>
+                                        <strong>Unassigned Students / Teams</strong>
+                                        <span class="badge bg-warning text-dark ms-2">${unassignedTeamNames.length} Items</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-muted transition-all"></i>
+                                </div>
+                                <div id="unassigned-section" class="ps-5 d-none mt-2 pb-2">
+                                    ${unassignedTeamNames.map(teamName => `
+                                        <div class="mb-3">
+                                            <div class="fw-bold text-warning-emphasis mb-1"><i class="fas fa-users me-2"></i>${teamName}</div>
+                                            <ul class="list-unstyled ps-4">
+                                                ${unassignedStudents[teamName].map(s => `<li><i class="fas fa-user-graduate me-2 text-secondary"></i>${s.name} (${s.roll})</li>`).join('')}
+                                            </ul>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                }
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="alert alert-danger">Critical error occurred while retrieving structural details.</div>';
+            }
+        }
+
+        let projectReportData = [];
+
+        async function showProjectReports() {
+            const modal = new bootstrap.Modal(document.getElementById('projectReportsModal'));
+            modal.show();
+            await fetchProjectReportData();
+        }
+
+        async function fetchProjectReportData() {
+            const tbody = document.getElementById('project-reports-body');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Loading reports...</td></tr>';
+            
+            try {
+                const req = await fetch(`${API_URL}?action=getAdminProjectReport`, { credentials: 'include' });
+                const res = await req.json();
+                
+                if (res.success) {
+                    projectReportData = res.data;
+                    
+                    // Populate Filters
+                    const depts = [...new Set(res.data.map(item => item.department_name))].sort();
+                    const years = [...new Set(res.data.map(item => item.academic_year))].filter(y => y).sort().reverse();
+                    const sems = [...new Set(res.data.map(item => item.semester))].filter(s => s).sort();
+                    
+                    const deptSel = document.getElementById('report-dept-filter');
+                    const yearSel = document.getElementById('report-year-filter');
+                    const semSel = document.getElementById('report-semester-filter');
+                    
+                    // Only populate if they only have the default option
+                    if (deptSel.options.length <= 1) {
+                        depts.forEach(d => {
+                            const opt = document.createElement('option');
+                            opt.value = d;
+                            opt.textContent = d;
+                            deptSel.appendChild(opt);
+                        });
+                    }
+                    
+                    if (yearSel.options.length <= 1) {
+                        years.forEach(y => {
+                            const opt = document.createElement('option');
+                            opt.value = y;
+                            opt.textContent = y;
+                            yearSel.appendChild(opt);
+                        });
+                    }
+
+                    if (semSel.options.length <= 1) {
+                        sems.forEach(s => {
+                            const opt = document.createElement('option');
+                            opt.value = s;
+                            opt.textContent = s;
+                            semSel.appendChild(opt);
+                        });
+                    }
+                    
+                    renderProjectReports();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">${res.message}</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Failed to fetch report data</td></tr>';
+            }
+        }
+
+        function renderProjectReports() {
+            const deptFilter = document.getElementById('report-dept-filter').value;
+            const yearFilter = document.getElementById('report-year-filter').value;
+            const semFilter = document.getElementById('report-semester-filter').value;
+            const tbody = document.getElementById('project-reports-body');
+            
+            let filtered = projectReportData;
+            if (deptFilter) filtered = filtered.filter(item => item.department_name === deptFilter);
+            if (yearFilter) filtered = filtered.filter(item => item.academic_year === yearFilter);
+            if (semFilter) filtered = filtered.filter(item => item.semester === semFilter);
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No projects match the selected filters.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(item => `
+                <tr>
+                    <td><strong>${item.department_name}</strong></td>
+                    <td><span class="badge bg-secondary">${item.academic_year || 'N/A'}</span></td>
+                    <td><span class="badge bg-primary">${item.semester || 'N/A'}</span></td>
+                    <td>${item.team_name}</td>
+                    <td>${item.project_title || '<em class="text-muted">No title</em>'}</td>
+                    <td class="text-center">
+                        ${item.screenshot_path ? `
+                            <img src="${SCREENSHOTS_BASE_URL}/${item.screenshot_path}" 
+                                 class="rounded border shadow-sm" 
+                                 style="width:50px; height:35px; object-fit:cover; cursor:pointer; transition:transform 0.2s;" 
+                                 onclick="viewFullScreenshot('${SCREENSHOTS_BASE_URL}/${item.screenshot_path}')"
+                                 onmouseover="this.style.transform='scale(1.2)'"
+                                 onmouseout="this.style.transform='scale(1)'"
+                                 alt="Screenshot">
+                        ` : '<span class="text-muted small"><i class="fas fa-image"></i> N/A</span>'}
+                    </td>
+                    <td><small>${item.members || '-'}</small></td>
+                    <td>${item.guide_name || '-'}</td>
+                    <td><span class="badge ${getStatusBadgeClass(item.status)}">${item.status || 'pending'}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'approved': return 'bg-success';
+                case 'rejected': return 'bg-danger';
+                case 'resubmit': return 'bg-info';
+                default: return 'bg-warning';
+            }
+        }
+
+        function exportAdminReportCsv() {
+            const deptFilter = document.getElementById('report-dept-filter').value;
+            const yearFilter = document.getElementById('report-year-filter').value;
+            const semFilter = document.getElementById('report-semester-filter').value;
+            let filtered = projectReportData;
+            if (deptFilter) filtered = filtered.filter(r => r.department_name === deptFilter);
+            if (yearFilter) filtered = filtered.filter(r => r.academic_year === yearFilter);
+            if (semFilter) filtered = filtered.filter(r => r.semester === semFilter);
+            if (filtered.length === 0) { showToast('No data to export.', 'error'); return; }
+            const csvEscape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const headers = ['Department', 'Year', 'Semester', 'Team', 'Project Title', 'Members', 'Guide', 'Status'];
+            const rows = filtered.map(r => [
+                csvEscape(r.department_name),
+                csvEscape(r.academic_year || 'N/A'),
+                csvEscape(r.semester || 'N/A'),
+                csvEscape(r.team_name),
+                csvEscape(r.project_title || ''),
+                csvEscape(r.members || ''),
+                csvEscape(r.guide_name || ''),
+                csvEscape(r.status || 'pending')
+            ].join(','));
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const deptLabel = deptFilter ? deptFilter.replace(/\s+/g, '_') : 'All_Depts';
+            const yearLabel = yearFilter || 'All_Years';
+            a.download = `Projects_Report_${deptLabel}_${yearLabel}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('clerk-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('name', document.getElementById('clerk-name').value);
+            fd.append('email', document.getElementById('clerk-email').value);
+            fd.append('password', document.getElementById('clerk-password').value);
+
+            try {
+                const req = await fetch(`${API_URL}?action=createClerk`, { method: 'POST', body: fd, credentials: 'include' });
+                const res = await req.json();
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('createClerkModal')).hide();
+                    e.target.reset();
+                    loadAdminData();
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (err) {
+                showToast('Something went wrong', 'error');
+            }
+        });
+
+        function openChangeEmailModal(id, name, email) {
+            document.getElementById('change-email-user-id').value = id;
+            document.getElementById('change-email-username').value = name;
+            document.getElementById('change-email-current').value = email;
+            document.getElementById('change-email-new').value = '';
+            // Use getOrCreateInstance so the same instance is tracked and .hide() works later
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('changeEmailModal')).show();
+        }
+
+        document.getElementById('change-email-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('change-email-user-id').value;
+            const newEmail = document.getElementById('change-email-new').value.trim();
+
+            if (!newEmail.includes('@')) {
+                showToast('Please enter a valid email address', 'error');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Updating...';
+
+            try {
+                const fd = new FormData();
+                fd.append('target_user_id', id);
+                fd.append('new_email', newEmail);
+
+                const req = await fetch(`${API_URL}?action=changeUserEmail`, { method: 'POST', body: fd, credentials: 'include' });
+                const res = await req.json();
+
+                if (res.success) {
+                    showToast(res.message || 'Email updated successfully!', 'success');
+                    // Hide modal using getOrCreateInstance to guarantee we get the same tracked instance
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('changeEmailModal')).hide();
+                    // Reload the users table from the server to show the latest data
+                    await showUsers();
+                } else {
+                    showToast(res.message || 'Failed to update email', 'error');
+                }
+            } catch (err) {
+                console.error('Email update error:', err);
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Update Email';
+            }
+        });
+
+        function viewFullScreenshot(src) {
+            document.getElementById('fullScreenshotImg').src = src;
+            new bootstrap.Modal(document.getElementById('screenshotModal')).show();
+        }
+    </script>
+</body>
+
+<!-- Screenshot Modal -->
+<div class="modal fade" id="screenshotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="background:transparent; border:none;">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute" style="top:-30px; right:0;" data-bs-dismiss="modal" aria-label="Close"></button>
+                <img id="fullScreenshotImg" src="" alt="Full Screenshot" style="width:100%; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

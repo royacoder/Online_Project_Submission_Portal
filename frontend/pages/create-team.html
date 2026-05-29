@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Team</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto" id="nav-auth"></ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container p-4 fade-in">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a href="student-dashboard.html" class="list-group-item"><i class="fas fa-tachometer-alt me-2"></i>My Dashboard</a>
+                    <a href="create-team.html" class="list-group-item active"><i class="fas fa-users me-2"></i>Create/Join Team</a>
+                    <a href="notifications.html" class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-bell me-2"></i>Notifications</span><span class="sidebar-notif-badge badge bg-danger rounded-pill" style="display:none;">0</span></a>
+                    <a href="profile.html" class="list-group-item"><i class="fas fa-user me-2"></i>My Profile</a>
+                    <a href="#" class="list-group-item text-danger" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header-accent">
+                        <div class="header-icon"><i class="fas fa-users"></i></div>
+                        <h5>Create a Team</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="team-form">
+                            <div class="mb-3">
+                                <label>Team Name</label>
+                                <input type="text" id="team_name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Choose a Partner (Leave empty for solo project)</label>
+                                <select id="partner_id" class="form-select">
+                                    <option value="">-- I am doing this solo --</option>
+                                </select>
+                                <small class="text-muted">Only students without a team are listed.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Team & Set Me As Leader</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth('student');
+
+        async function loadStudents() {
+            const req = await fetch(`${API_URL}?action=getAvailableStudents`, { credentials: 'include' });
+            const res = await req.json();
+            const sel = document.getElementById('partner_id');
+            const teamForm = document.getElementById('team-form');
+            if (res.success) {
+                res.students.forEach(s => {
+                    sel.innerHTML += `<option value="${s.id}">${s.username} (${s.roll_number})</option>`;
+                });
+            } else if (res.message && res.message.includes('Section not assigned')) {
+                // Remove form and show alert
+                teamForm.innerHTML = `<div class="alert alert-danger">
+                    <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Access Denied</h4>
+                    <p>${res.message}</p>
+                    <hr>
+                    <p class="mb-0">Please wait for your HOD to assign you to a section before forming a team.</p>
+                </div>`;
+            }
+        }
+        loadStudents();
+
+        document.getElementById('team-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('team_name', document.getElementById('team_name').value);
+            fd.append('partner_id', document.getElementById('partner_id').value);
+            const req = await fetch(`${API_URL}?action=createTeam`, { method: 'POST', body: fd });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Team created successfully!', 'success');
+                setTimeout(() => window.location.href = 'student-dashboard.html', 1000);
+            } else {
+                showToast(res.message, 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

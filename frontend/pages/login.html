@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Project Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Floating orbs -->
+    <div class="auth-orb auth-orb-1"></div>
+    <div class="auth-orb auth-orb-2"></div>
+    <div class="auth-orb auth-orb-3"></div>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2"
+                    style="color:var(--primary)"></i>Project Portal</a>
+            <ul class="navbar-nav ms-auto" id="nav-auth">
+                <li class="nav-item"><a class="nav-link" href="register.html"><i
+                            class="fas fa-user-plus me-1"></i>Register</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container fade-in"
+        style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;">
+        <div class="auth-card w-100">
+            <div class="card">
+                <div class="card-body">
+                    <div class="auth-logo">
+                        <div class="logo-dot"><i class="fas fa-graduation-cap"></i></div>
+                        <h3>Welcome Back</h3>
+                        <p>Sign in to your account to continue</p>
+                    </div>
+
+                    <div id="error-msg" class="alert alert-danger d-none"></div>
+
+                    <form id="login-form" autocomplete="on">
+                        <div class="mb-4">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" class="form-control" placeholder="you@example.com"
+                                autocomplete="email" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password">Password</label>
+                            <div class="input-pw-wrap">
+                                <input type="password" id="password" class="form-control" placeholder="••••••••"
+                                    autocomplete="current-password" required>
+                                <button type="button" class="pw-toggle" id="pw-toggle-btn"><i
+                                        class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 mb-3" type="submit" id="login-btn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                        <div class="text-center">
+                            <a href="forgot-password.html" style="font-size:0.9rem;">Forgot Password?</a>
+                            <span class="mx-2" style="color:var(--text-muted);">·</span>
+                            <a href="register.html" style="font-size:0.9rem;">Create Account</a>
+                        </div>
+                        <hr class="my-4" style="opacity: 0.1;">
+                        <a href="approved-projects.html" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-search me-2"></i>Access Project Gallery
+                        </a>
+                    </form>
+
+                    <!-- Demo credentials -->
+                    <div class="demo-creds">
+                        <div class="demo-title"><i class="fas fa-key me-1"></i>Demo Admin Credentials</div>
+                        <div class="demo-row"><span>Email</span><span>admin@portal.com</span></div>
+                        <div class="demo-row"><span>Password</span><span>admin123</span></div>
+                        <div style="margin-top:0.5rem;text-align:center">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                style="font-size:0.75rem;padding:0.3rem 0.8rem" onclick="fillDemo()">
+                                <i class="fas fa-magic me-1"></i>Fill Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        initPwToggle('password', 'pw-toggle-btn');
+
+        function fillDemo() {
+            document.getElementById('email').value = 'admin@portal.com';
+            document.getElementById('password').value = 'admin123';
+            showToast('Demo credentials filled. Click Sign In!', 'info');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('email', document.getElementById('email').value);
+            formData.append('password', document.getElementById('password').value);
+
+            try {
+                progressStart();
+                const req = await fetch(`${API_URL}?action=login`, { method: 'POST', body: formData, credentials: 'include' });
+                const res = await req.json();
+                progressDone();
+
+                if (res.success) {
+                    showToast(`Welcome back! Redirecting...`, 'success');
+                    setTimeout(() => {
+                        if (res.role === 'admin') window.location.href = 'admin-dashboard.html';
+                        else if (res.role === 'hod') window.location.href = 'hod-dashboard.html';
+                        else if (res.role === 'clerk') window.location.href = 'clerk-dashboard.html';
+                        else if (res.role === 'guide') window.location.href = 'guide-dashboard.html';
+                        else if (res.role === 'student') window.location.href = 'student-dashboard.html';
+                    }, 800);
+                } else {
+                    const el = document.getElementById('error-msg');
+                    el.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${res.message}`;
+                    el.classList.remove('d-none');
+                    showToast(res.message, 'error', 'Login Failed');
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sign In';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                progressDone();
+                showToast('Cannot connect to server. Is the backend running?', 'error', 'Connection Error');
+                btn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sign In';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

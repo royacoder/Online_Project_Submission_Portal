@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto" id="nav-auth"></ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container p-4 fade-in">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a href="student-dashboard.html" class="list-group-item"><i class="fas fa-tachometer-alt me-2"></i>My Dashboard</a>
+                    <a href="submit-project.html" class="list-group-item active"><i class="fas fa-upload me-2"></i>Submit Project</a>
+                    <a href="notifications.html" class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-bell me-2"></i>Notifications</span><span class="sidebar-notif-badge badge bg-danger rounded-pill" style="display:none;">0</span></a>
+                    <a href="profile.html" class="list-group-item"><i class="fas fa-user me-2"></i>My Profile</a>
+                    <a href="#" class="list-group-item text-danger" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header-accent" id="submit-header">
+                        <div class="header-icon" style="background:rgba(16,185,129,0.15);color:var(--success)"><i class="fas fa-upload"></i></div>
+                        <h5>Submit Project Deliverables</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="proj-form" enctype="multipart/form-data">
+                            <div class="mb-3"><label>Project Title</label><input type="text" id="title"
+                                    class="form-control" required></div>
+                            <div class="mb-3"><label>Abstract</label><textarea id="abstract" class="form-control"
+                                    rows="4" required></textarea></div>
+                            <div class="mb-3"><label>Technology Stack</label><input type="text" id="tech_stack"
+                                    class="form-control" placeholder="e.g. PHP, MySQL" required></div>
+                            <div class="mb-3"><label>GitHub Repository Link</label><input type="url" id="github"
+                                    class="form-control" placeholder="https://github.com/..." required></div>
+                            <div class="mb-3">
+                                <label>Website Link (Deployed Project) <span class="text-muted" style="font-size:0.8rem;">(Optional)</span></label>
+                                <input type="url" id="website_link" class="form-control" placeholder="https://your-project.com">
+                                <div id="website-link-error" class="text-danger mt-1" style="font-size:0.85rem;display:none;"></div>
+                                <small class="text-muted">If your project is deployed, provide the live URL (must start with http:// or https://)</small>
+                            </div>
+                                <label>Semester</label>
+                                <select id="semester" class="form-select" required>
+                                    <option value="" disabled selected>Select Semester</option>
+                                    <option value="Semester 1">Semester 1</option>
+                                    <option value="Semester 2">Semester 2</option>
+                                    <option value="Semester 3">Semester 3</option>
+                                    <option value="Semester 4">Semester 4</option>
+                                    <option value="Semester 5">Semester 5</option>
+                                    <option value="Semester 6">Semester 6</option>
+                                    <option value="Semester 7">Semester 7</option>
+                                    <option value="Semester 8">Semester 8</option>
+                                </select>
+                            </div>
+                            <div class="mb-3"><label>Project File (ZIP/PDF)</label><input type="file" id="project_file"
+                                    class="form-control" accept=".zip,.pdf,.rar" required></div>
+                            <div class="mb-3">
+                                <label class="d-flex justify-content-between align-items-center">
+                                    <span>Website Preview Screenshots (1-4 required)</span>
+                                    <span id="screenshot-count" class="badge bg-secondary">0/4 selected</span>
+                                </label>
+                                <input type="file" id="screenshot_file" class="form-control" accept=".jpg,.jpeg,.png" multiple required>
+                                <div id="screenshot_preview_container" class="mt-3 row g-2" style="display: none;">
+                                    <!-- Previews will be injected here -->
+                                </div>
+                                <small class="text-muted mt-1 d-block">You can select up to 4 images at once. Min 1, Max 4 screenshots. (Max 2MB per image)</small>
+                            </div>
+                            <button type="submit" class="btn btn-success float-end">Submit Project Details</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth('student');
+        
+        let isResubmitting = false;
+
+        async function loadPreviousProject() {
+            const req = await fetch(`${API_URL}?action=getStudentProject`, { credentials: 'include' });
+            const res = await req.json();
+            
+            if (res.success && res.project) {
+                const p = res.project;
+                document.getElementById('title').value = p.title;
+                document.getElementById('abstract').value = p.abstract;
+                document.getElementById('tech_stack').value = p.tech_stack;
+                document.getElementById('github').value = p.github_link || '';
+                if (p.semester) {
+                    document.getElementById('semester').value = p.semester;
+                }
+                if (p.website_link) {
+                    document.getElementById('website_link').value = p.website_link;
+                }
+                
+                if (p.status === 'resubmit') {
+                    isResubmitting = true;
+                    const hdr = document.getElementById('submit-header');
+                    hdr.querySelector('h5').textContent = 'Resubmit Project Deliverables';
+                    document.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-redo me-2"></i>Resubmit Project';
+                    const fileInput = document.getElementById('project_file');
+                    fileInput.required = false;
+                    fileInput.previousElementSibling.textContent = 'Project File (Leave empty to keep previous file)';
+                    
+                    const sFileInput = document.getElementById('screenshot_file');
+                    sFileInput.required = false;
+                    sFileInput.closest('.mb-3').querySelector('span').textContent = 'Website Preview Screenshots (Optional if already uploaded)';
+                } else {
+                    document.querySelector('.card-body').innerHTML = '<div class="alert alert-info">A project has already been submitted and its status is: <strong>' + p.status + '</strong>. You cannot submit again unless asked to resubmit.</div>';
+                }
+            }
+        }
+        
+        loadPreviousProject();
+
+        let selectedScreenshots = [];
+
+        document.getElementById('screenshot_file').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            if (selectedScreenshots.length + files.length > 4) {
+                showToast('You can upload a maximum of 4 screenshots only', 'error');
+                this.value = '';
+                return;
+            }
+
+            files.forEach(file => {
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast(`File "${file.name}" is too large. Max size 2MB.`, 'error');
+                    return;
+                }
+                
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (!validTypes.includes(file.type)) {
+                    showToast(`Invalid type for "${file.name}". Only JPG, PNG allowed.`, 'error');
+                    return;
+                }
+
+                selectedScreenshots.push(file);
+            });
+
+            this.value = ''; // Reset input to allow re-selecting same file if removed
+            updateScreenshotPreviews();
+        });
+
+        function updateScreenshotPreviews() {
+            const container = document.getElementById('screenshot_preview_container');
+            const countBadge = document.getElementById('screenshot-count');
+            
+            container.innerHTML = '';
+            countBadge.textContent = `${selectedScreenshots.length}/4 selected`;
+            
+            if (selectedScreenshots.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+            selectedScreenshots.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'col-3 position-relative';
+                    div.innerHTML = `
+                        <div class="screenshot-thumb-wrapper" style="height: 100px; border-radius: 8px; overflow: hidden; border: 1px solid var(--card-border);">
+                            <img src="${e.target.result}" class="w-100 h-100" style="object-fit: cover;">
+                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
+                                    style="padding: 2px 6px; font-size: 0.7rem;" onclick="removeScreenshot(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        window.removeScreenshot = function(index) {
+            selectedScreenshots.splice(index, 1);
+            updateScreenshotPreviews();
+        };
+
+        document.getElementById('proj-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isResubmitting && selectedScreenshots.length === 0) {
+                showToast('At least one screenshot is required.', 'error');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('title', document.getElementById('title').value);
+            fd.append('abstract', document.getElementById('abstract').value);
+            fd.append('tech_stack', document.getElementById('tech_stack').value);
+            fd.append('github', document.getElementById('github').value);
+            fd.append('semester', document.getElementById('semester').value);
+
+            const websiteLink = document.getElementById('website_link').value.trim();
+            const websiteLinkError = document.getElementById('website-link-error');
+            if (websiteLinkError) websiteLinkError.style.display = 'none';
+            
+            if (websiteLink) {
+                if (!websiteLink.startsWith('http://') && !websiteLink.startsWith('https://')) {
+                    if (websiteLinkError) {
+                        websiteLinkError.textContent = 'Website link must start with http:// or https://';
+                        websiteLinkError.style.display = 'block';
+                    } else {
+                        showToast('Website link must start with http:// or https://', 'error');
+                    }
+                    document.getElementById('website_link').focus();
+                    return;
+                }
+                try {
+                    new URL(websiteLink);
+                } catch (_) {
+                    if (websiteLinkError) {
+                        websiteLinkError.textContent = 'Please enter a valid URL (e.g. https://your-project.com)';
+                        websiteLinkError.style.display = 'block';
+                    } else {
+                        showToast('Please enter a valid URL', 'error');
+                    }
+                    document.getElementById('website_link').focus();
+                    return;
+                }
+                fd.append('website_link', websiteLink);
+            }
+
+            const fp = document.getElementById('project_file').files[0];
+            if (fp) fd.append('project_file', fp);
+            
+            selectedScreenshots.forEach(file => {
+                fd.append('screenshot_files', file);
+            });
+
+            progressStart();
+            try {
+                const req = await fetch(`${API_URL}?action=submitProject`, { method: 'POST', body: fd, credentials: 'include' });
+                const res = await req.json();
+                progressDone();
+
+                if (res.success) {
+                    showToast('Project submitted successfully!', 'success');
+                    setTimeout(() => window.location.href = 'student-dashboard.html', 1000);
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (err) {
+                progressDone();
+                showToast('Submission failed. Check connection.', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

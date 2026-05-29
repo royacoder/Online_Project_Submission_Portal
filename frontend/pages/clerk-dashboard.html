@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clerk Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto" id="nav-auth"></ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container p-4 fade-in">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-user-edit me-3" style="color:var(--primary)"></i>Clerk Dashboard</h2>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                            <i class="fas fa-user-plus me-2"></i>Add New Student
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card stat-card accent-primary">
+                            <div class="card-body">
+                                <h6>Total Departments</h6>
+                                <h3 id="stat-depts">-</h3>
+                                <i class="fas fa-building stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card stat-card accent-success">
+                            <div class="card-body">
+                                <h6>Total Students Registered</h6>
+                                <h3 id="stat-students">-</h3>
+                                <i class="fas fa-user-graduate stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Departments Table -->
+                <div class="card mb-4">
+                    <div class="card-header-accent">
+                        <div class="header-icon"><i class="fas fa-building"></i></div>
+                        <h5>Departments Overview</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Department Name</th>
+                                        <th>Student Count</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="depts-tbody">
+                                    <tr><td colspan="4" class="text-center">Loading departments...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2 text-primary"></i>Register New Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStudentForm" onsubmit="addStudent(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="stu-name" class="form-control" placeholder="Enter student's full name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="stu-email" class="form-control" placeholder="name@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Roll Number</label>
+                            <input type="text" id="stu-roll" class="form-control" placeholder="unique roll number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <select id="stu-dept" class="form-select" required>
+                                <option value="" disabled selected>Select Department</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Academic Year</label>
+                            <select id="stu-year" class="form-select" required>
+                                <option value="" disabled selected>Select Year</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Temporary Password</label>
+                            <input type="password" id="stu-pass" class="form-control" placeholder="Create a temporary password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-paper-plane me-2"></i>Create Student Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth('clerk');
+
+        async function loadClerkData() {
+            try {
+                const req = await fetch(`${API_URL}?action=getClerkStats`, { credentials: 'include' });
+                const res = await req.json();
+                if (res.success) {
+                    document.getElementById('stat-depts').textContent = res.stats.departments;
+                    document.getElementById('stat-students').textContent = res.stats.students;
+
+                    const tbody = document.getElementById('depts-tbody');
+                    tbody.innerHTML = res.departments.map(d => `
+                        <tr>
+                            <td>${d.id}</td>
+                            <td><strong>${d.name}</strong></td>
+                            <td><span class="badge bg-info text-white px-3 py-2">${d.student_count} Students</span></td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-primary" onclick="openAddModalWithDept(${d.id})">
+                                    <i class="fas fa-plus me-1"></i> Add Student
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Populate department dropdown
+                    const deptSel = document.getElementById('stu-dept');
+                    deptSel.innerHTML = '<option value="" disabled selected>Select Department</option>' + 
+                        res.departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function openAddModalWithDept(deptId) {
+            document.getElementById('stu-dept').value = deptId;
+            new bootstrap.Modal(document.getElementById('addStudentModal')).show();
+        }
+
+        async function addStudent(e) {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('name', document.getElementById('stu-name').value);
+            fd.append('email', document.getElementById('stu-email').value);
+            fd.append('roll', document.getElementById('stu-roll').value);
+            fd.append('department_id', document.getElementById('stu-dept').value);
+            fd.append('password', document.getElementById('stu-pass').value);
+            fd.append('academic_year', document.getElementById('stu-year').value);
+
+            try {
+                const req = await fetch(`${API_URL}?action=createStudentByClerk`, {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'include'
+                });
+                const res = await req.json();
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    e.target.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
+                    loadClerkData();
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (err) {
+                showToast('Something went wrong. Please try again.', 'error');
+            }
+        }
+
+        // Initialize Academic Year select
+        (function() {
+            const sel = document.getElementById('stu-year');
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear + 1; i >= 2020; i--) {
+                const nextYear = (i + 1).toString().slice(-2);
+                const label = `${i}-${nextYear}`;
+                const opt = document.createElement('option');
+                opt.value = label;
+                opt.textContent = label;
+                if (i === currentYear) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        })();
+
+        loadClerkData();
+    </script>
+</body>
+
+</html>

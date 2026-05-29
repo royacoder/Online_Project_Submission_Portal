@@ -1,0 +1,47 @@
+Project Abstract: Online Project Submission Portal
+
+The Online Project Submission Portal is a comprehensive, multi-role web application designed to streamline the lifecycle of academic projects within an educational institution. The system facilitates seamless collaboration between students, faculty guides, department heads (HODs), administrators, and clerks.
+
+Key Modules and Functionalities:
+
+1. Multi-Role Authentication & Authorization:
+   - Secure login system for Students, Guides, HODs, Admins, and Clerks.
+   - Role-based dashboards tailored to specific user needs and permissions.
+
+2. Student Module:
+   - Team formation and project registration.
+   - Submission of project deliverables including titles, abstracts, technology stacks, source files (ZIP/PDF), screenshots, and live deployment links.
+   - Real-time tracking of project status (Pending, Approved, Resubmit, Rejected).
+   - View evaluation results, marks, and feedback from guides.
+
+3. Guide Module:
+   - Review and manage assigned student teams and projects.
+   - Evaluate submissions by providing marks and qualitative feedback.
+   - Request resubmissions for projects requiring improvements.
+   - Access to visual project previews (screenshots) and downloadable files.
+
+4. HOD & Admin Modules:
+   - Comprehensive department management (Adding departments, HODs, and teaching staff).
+   - Oversight of all projects within the department or institution.
+   - Advanced reporting system with CSV export functionality for project tracking.
+   - User account management, including secure email updates and profile photo management.
+
+5. Public Approved Projects Gallery:
+   - A public-facing showcase of approved projects accessible without authentication.
+   - Search and filter capabilities by academic year and department.
+   - Detailed project view pages highlighting project achievements, team members, and guide details.
+
+6. Technical Features:
+   - Modern, responsive frontend built with HTML5, CSS3 (Vanilla), and Bootstrap 5.
+   - Robust Flask-based Python backend with SQLite database integration.
+   - Secure file handling for project deliverables and screenshots.
+   - Real-time UI updates and smooth user experience with integrated animations.
+
+Technology Stack:
+- Frontend: HTML, Vanilla CSS, JavaScript, Bootstrap 5, FontAwesome.
+- Backend: Python (Flask), Flask-CORS, Bcrypt (for secure password hashing).
+- Database: SQLite (SQLAlchemy/Raw SQL).
+- Asset Storage: Local file system with secure routing for uploads and screenshots.
+
+Conclusion:
+This portal eliminates manual paperwork and fragmented communication, providing a centralized platform for academic project management, evaluation, and public showcase, thereby enhancing transparency and efficiency in the academic evaluation process.

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#" id="back-link"><i class="fas fa-arrow-left me-1"></i>Back to Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container fade-in py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-6">
+                <div class="card">
+                    <div class="profile-header-new">
+                        <input type="file" id="profile-photo-input" hidden accept="image/*" onchange="uploadPhoto(this.files[0])">
+                        <div class="profile-avatar-new" id="avatar-display" onclick="document.getElementById('profile-photo-input').click()">
+                            <i class="fas fa-user" id="avatar-icon"></i>
+                        </div>
+                        <h3 id="profile-name" style="font-size:1.75rem;font-weight:800;margin-bottom:0.5rem;">Loading...</h3>
+                        <span class="badge bg-primary" id="profile-role" style="font-size:0.85rem;padding:0.5rem 1rem;border-radius:20px;">-</span>
+                    </div>
+                    <div class="card-body p-0" id="profile-details">
+                        <div class="p-5 text-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="border-top:1px solid var(--card-border);padding:1.25rem 2rem;">
+                        <button class="btn btn-outline-danger w-100" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth();
+
+        async function loadProfile() {
+            try {
+                const req = await fetch(`${API_URL}?action=getUserProfile`, { credentials: 'include' });
+                const res = await req.json();
+
+                if (res.success) {
+                    const p = res.profile;
+                    document.getElementById('profile-name').textContent = p.username;
+                    document.getElementById('profile-role').textContent = p.role.toUpperCase();
+
+                    if (p.profile_photo) displayPhoto(p.profile_photo);
+
+                    document.getElementById('back-link').href = p.role + '-dashboard.html';
+
+                    const item = (icon, label, value) => `
+                        <div class="detail-item-new">
+                            <span class="detail-label-new"><i class="fas fa-${icon}"></i>${label}</span>
+                            <span class="detail-value-new">${value}</span>
+                        </div>`;
+
+                    let html = item('envelope', 'Email', p.email)
+                             + item('calendar-alt', 'Member Since', new Date(p.created_at).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}));
+
+                    const d = p.details;
+                    if (p.role === 'student') {
+                        html += item('id-card', 'Roll Number', d.roll_number)
+                              + item('building', 'Department', d.department_name)
+                              + item('users', 'Team', d.team_name || '<em style="opacity:0.5">Not in a team</em>')
+                              + item('user-tie', 'Guide', d.guide_name || '<em style="opacity:0.5">Not assigned</em>');
+                    } else if (p.role === 'guide') {
+                        html += item('building', 'Department', d.department_name)
+                              + item('tasks', 'Guided Teams', d.team_count);
+                    } else if (p.role === 'hod') {
+                        html += item('building', 'Head of Department', d.department_name);
+                        if (d.department_description) {
+                            html += `<div class="detail-item-new" style="flex-direction:column;align-items:flex-start;gap:0.5rem;">
+                                <span class="detail-label-new"><i class="fas fa-info-circle"></i>Description</span>
+                                <span class="detail-value-new" style="text-align:left;opacity:0.7;font-size:0.9rem;">${d.department_description}</span>
+                            </div>`;
+                        }
+                    }
+
+                    document.getElementById('profile-details').innerHTML = html;
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (err) {
+                document.getElementById('profile-details').innerHTML = '<div class="p-5 text-center" style="color:var(--danger)">Error loading profile.</div>';
+            }
+        }
+
+        async function uploadPhoto(file) {
+            if (!file) return;
+            const fd = new FormData();
+            fd.append('photo', file);
+            const req = await fetch(`${API_URL}?action=uploadProfilePhoto`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) displayPhoto(res.photo_url);
+            else alert('Upload failed: ' + res.message);
+        }
+
+        function displayPhoto(photoUrl) {
+            const avatar = document.getElementById('avatar-display');
+            const icon = document.getElementById('avatar-icon');
+            const finalUrl = photoUrl.startsWith('profile_photos/') ? `${API_URL_BASE}/${photoUrl}` : `${API_URL_BASE}/profile_photos/${photoUrl}`;
+            avatar.style.backgroundImage = `url('${finalUrl}')`;
+            avatar.style.background = `url('${finalUrl}') center/cover`;
+            icon.style.display = 'none';
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

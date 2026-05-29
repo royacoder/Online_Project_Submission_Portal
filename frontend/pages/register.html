@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="auth-orb auth-orb-1"></div>
+    <div class="auth-orb auth-orb-2"></div>
+    <div class="auth-orb auth-orb-3"></div>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <ul class="navbar-nav ms-auto" id="nav-auth">
+                <li class="nav-item"><a class="nav-link" href="login.html"><i class="fas fa-sign-in-alt me-1"></i>Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container fade-in py-5">
+        <div class="auth-card w-100" style="max-width:520px;">
+            <div class="card">
+                <div class="card-body">
+                    <div class="auth-logo">
+                        <div class="logo-dot"><i class="fas fa-user-graduate"></i></div>
+                        <h3>Create Account</h3>
+                        <p>Register as a student</p>
+                    </div>
+                    <div id="error-msg" class="alert alert-danger d-none"></div>
+                    <div class="alert alert-info text-center py-4" style="border: 1px dashed var(--primary); background: rgba(var(--primary-rgb), 0.05);">
+                        <i class="fas fa-user-shield fa-3x mb-3 text-primary"></i>
+                        <h5>Registration Closed</h5>
+                        <p class="text-muted small">Public student registration is currently disabled to ensure data integrity.</p>
+                        <p class="mb-0">Please contact your <strong>Department Clerk</strong> or <strong>HOD</strong> with your details. They will create your account for you.</p>
+                    </div>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <a href="login.html" class="btn btn-outline-primary px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>Back to Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        initPwToggle('pass', 'pw-toggle-reg');
+
+        async function loadDepts() {
+            try {
+                const req = await fetch(`${API_URL}?action=getDepartments&only_active=true`, { credentials: 'include' });
+                const res = await req.json();
+                const sel = document.getElementById('department');
+                sel.innerHTML = '<option value="" disabled selected>-- Select Department --</option>';
+                if (res.success && res.data.length > 0) {
+                    res.data.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name;
+                        sel.appendChild(opt);
+                    });
+                } else {
+                    sel.innerHTML += '<option value="" disabled>No departments available</option>';
+                }
+            } catch (err) {
+                document.getElementById('department').innerHTML = '<option value="" disabled>Error connecting to server</option>';
+            }
+        }
+
+        function populateYears() {
+            const yearSel = document.getElementById('academic_year');
+            for (let i = 2025; i >= 2000; i--) {
+                const nextYear = (i + 1).toString().slice(-2);
+                const opt = document.createElement('option');
+                opt.value = `${i}-${nextYear}`;
+                opt.textContent = `${i}-${nextYear}`;
+                yearSel.appendChild(opt);
+            }
+        }
+
+        loadDepts();
+        populateYears();
+
+        document.getElementById('reg-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+            btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('name', document.getElementById('name').value);
+            fd.append('email', document.getElementById('email').value);
+            fd.append('roll', document.getElementById('roll').value);
+            fd.append('department', document.getElementById('department').value);
+            fd.append('academic_year', document.getElementById('academic_year').value);
+            fd.append('password', document.getElementById('pass').value);
+            fd.append('is_solo', document.getElementById('is_solo').checked);
+
+            const req = await fetch(`${API_URL}?action=registerStudent`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Registered successfully! Redirecting to login...', 'success');
+                setTimeout(() => window.location.href = 'login.html', 1200);
+            } else {
+                const el = document.getElementById('error-msg');
+                el.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${res.message || 'Registration failed.'}`;
+                el.classList.remove('d-none');
+                showToast(res.message || 'Registration failed.', 'error');
+                btn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Create Account';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

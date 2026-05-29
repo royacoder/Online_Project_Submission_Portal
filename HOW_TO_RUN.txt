@@ -1,0 +1,33 @@
+HOW TO SET UP AND RUN THE PROJECT
+=================================
+
+Hi! We have simplified the process of setting up and running the Online Project Submission Portal on Windows using two handy scripts.
+
+-----------------------------------------------------------
+STEP 1: INITIAL SETUP (Do this only once)
+-----------------------------------------------------------
+1. Open the project folder: `ONINE PROJECT SUBMISSION PORTAL`
+2. Double-click the file named `setup.bat`.
+3. Wait for it to finish. It will:
+   - Create a Python virtual environment.
+   - Install all required libraries (Flask, bcrypt, etc.).
+   - Initialize the SQLite database with the required tables and dummy data.
+4. When it says "Setup Complete!", press any key to close the window.
+
+-----------------------------------------------------------
+STEP 2: RUN THE PROJECT (Do this every time you want to use it)
+-----------------------------------------------------------
+1. Double-click the file named `run.bat`.
+2. A black terminal window will open. Leave this window open in the background!
+3. The script will automatically open your default web browser and go to:
+   http://localhost:5000/
+4. If it doesn't open automatically, just type that URL into your browser.
+
+-----------------------------------------------------------
+DEFAULT LOGIN CREDENTIALS
+-----------------------------------------------------------
+You can log in as the administrator using these details:
+* Email: admin@portal.com
+* Password: admin123
+
+Enjoy using the portal!

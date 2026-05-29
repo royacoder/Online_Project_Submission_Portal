@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOD Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap me-2" style="color:var(--primary)"></i>Project Portal</a>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav ms-auto" id="nav-auth"></ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container p-4 fade-in">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h2><i class="fas fa-user-shield me-3" style="color:var(--primary)"></i>HOD Dashboard</h2>
+                    <div class="action-bar mb-0">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createGuideModal">
+                            <i class="fas fa-user-plus me-2"></i>Add Teaching Staff
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSectionModal">
+                            <i class="fas fa-layer-group me-2"></i>Create Section
+                        </button>
+                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#createStudentModal">
+                            <i class="fas fa-user-graduate me-2"></i>Create Student
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="showHodReports()">
+                            <i class="fas fa-chart-bar me-2"></i>Reports
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row mb-4" id="stats-row">
+                    <div class="col-md-4">
+                        <div class="card stat-card accent-success">
+                            <div class="card-body">
+                                <h6>Total Teaching Staff</h6>
+                                <h3 id="stat-staff">-</h3>
+                                <i class="fas fa-chalkboard-teacher stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card accent-info">
+                            <div class="card-body">
+                                <h6>Total Students</h6>
+                                <h3 id="stat-students">-</h3>
+                                <i class="fas fa-user-graduate stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card accent-secondary">
+                            <div class="card-body">
+                                <h6>Total Teams</h6>
+                                <h3 id="stat-teams">-</h3>
+                                <i class="fas fa-users stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="hodTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="teams-tab-btn" data-bs-toggle="tab" data-bs-target="#teams-tab" type="button">Department Teams</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="students-tab-btn" data-bs-toggle="tab" data-bs-target="#students-tab" type="button" onclick="loadStudents()">Students List</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="guides-tab-btn" data-bs-toggle="tab" data-bs-target="#guides-tab" type="button" onclick="loadGuidesList()">Teaching Staff</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="sections-tab-btn" data-bs-toggle="tab" data-bs-target="#sections-tab" type="button" onclick="loadSections()">Sections</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="hodTabsContent">
+                    <div class="tab-pane fade show active" id="teams-tab" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header-accent">
+                                <div class="header-icon"><i class="fas fa-users"></i></div>
+                                <h5>Manage Teams</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 d-flex justify-content-end gap-2 flex-wrap">
+                                    <div class="d-flex align-items-center">
+                                        <label for="year-filter" class="form-label me-2 mb-0">Year:</label>
+                                        <select id="year-filter" class="form-select w-auto" onchange="loadTeams()">
+                                            <option value="">All Years</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <label for="semester-filter" class="form-label me-2 mb-0">Semester:</label>
+                                        <select id="semester-filter" class="form-select w-auto" onchange="loadTeams()">
+                                            <option value="">All Semesters</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Year</th>
+                                                <th>Semester</th>
+                                                <th>Team Name</th>
+                                                <th>Project Title</th>
+                                                <th>Status</th>
+                                                <th>Assigned Guide</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="teams-tbody">
+                                            <tr><td colspan="8" class="text-center">Loading teams...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="students-tab" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header-accent">
+                                <div class="header-icon" style="background:rgba(14,165,233,0.15);color:#38bdf8"><i class="fas fa-user-graduate"></i></div>
+                                <h5>Department Students</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <select id="filter-section" class="form-select" onchange="loadStudents()">
+                                            <option value="">All Sections</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select id="filter-guide" class="form-select" onchange="loadStudents()">
+                                            <option value="">All Guides</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">Reset Filters</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Section</th>
+                                                <th>Roll No</th>
+                                                <th>Status</th>
+                                                <th>Team</th>
+                                                <th>Assigned Guide</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="students-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="guides-tab" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header-accent">
+                                <div class="header-icon" style="background:rgba(16,185,129,0.15);color:var(--success)"><i class="fas fa-chalkboard-teacher"></i></div>
+                                <h5>Teaching Staff</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="guides-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="sections-tab" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header-accent">
+                                <div class="header-icon"><i class="fas fa-layer-group"></i></div>
+                                <h5>Manage Sections</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Section Name</th>
+                                                <th>Coordinator</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sections-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Guide Modal -->
+    <div class="modal fade" id="createGuideModal" tabindex="-1" aria-labelledby="createGuideModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createGuideModalLabel"><i class="fas fa-chalkboard-teacher me-2" style="color:var(--primary)"></i>Add Teaching Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form onsubmit="createGuide(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Guide Name</label>
+                            <input type="text" id="guide-name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email Address</label>
+                            <input type="email" id="guide-email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" id="guide-password" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Staff</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Section Modal -->
+    <div class="modal fade" id="createSectionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-layer-group me-2" style="color:var(--primary)"></i>Create New Section</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="section-form">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Section Name</label>
+                            <input type="text" id="section-name" class="form-control" placeholder="e.g. Section A" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Section Coordinator (Optional)</label>
+                            <select id="section-coordinator" class="form-select">
+                                <option value="">Select Staff</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Section</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        checkAuth('hod');
+
+        let guidesList = [];
+        let sectionsList = [];
+
+        async function loadGuides() {
+            const req = await fetch(`${API_URL}?action=getGuides`, { credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                guidesList = res.guides;
+                // Update coordinator dropdown
+                const coordSel = document.getElementById('section-coordinator');
+                if (coordSel) {
+                    const currentVal = coordSel.value;
+                    coordSel.innerHTML = '<option value="">Select Staff</option>' + 
+                        guidesList.map(g => `<option value="${g.id}">${g.username}</option>`).join('');
+                    coordSel.value = currentVal;
+                }
+                
+                // Update guide filter
+                const guideFilter = document.getElementById('filter-guide');
+                if (guideFilter && guideFilter.options.length <= 1) {
+                    guidesList.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.id;
+                        opt.textContent = g.username;
+                        guideFilter.appendChild(opt);
+                    });
+                }
+            }
+        }
+
+        async function loadStats() {
+            const req = await fetch(`${API_URL}?action=getHodStats`, { credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                document.getElementById('stat-staff').innerText = res.stats.staff;
+                document.getElementById('stat-students').innerText = res.stats.students;
+                document.getElementById('stat-teams').innerText = res.stats.teams;
+            }
+        }
+
+        async function loadTeams() {
+            if (guidesList.length === 0) await loadGuides();
+            const year = document.getElementById('year-filter').value;
+            const semester = document.getElementById('semester-filter').value;
+            let url = `${API_URL}?action=getHodTeams`;
+            if (year) url += `&year=${encodeURIComponent(year)}`;
+            if (semester) url += `&semester=${encodeURIComponent(semester)}`;
+            
+            const req = await fetch(url, { credentials: 'include' });
+            const res = await req.json();
+            
+            // Populating the year filter if not already done
+            const yearFilter = document.getElementById('year-filter');
+            if (res.years && res.years.length > 0 && yearFilter.children.length <= 1) {
+                res.years.forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearFilter.appendChild(opt);
+                });
+            } else if (!res.years || res.years.length === 0) {
+                 // Fallback if no years returned but we want a default
+                 if (yearFilter.children.length <= 1) yearFilter.innerHTML = '<option value="">All Years</option>';
+            }
+            
+            // Populating the semester filter if not already done
+            const semesterFilter = document.getElementById('semester-filter');
+            if (res.semesters && res.semesters.length > 0 && semesterFilter.children.length <= 1) {
+                res.semesters.sort().forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    semesterFilter.appendChild(opt);
+                });
+            }
+
+            const tbody = document.getElementById('teams-tbody');
+            if (res.success && res.teams.length > 0) {
+                tbody.innerHTML = res.teams.map(t => {
+                    const guideOptions = guidesList && guidesList.length > 0
+                        ? guidesList.map(g => `<option value="${g.id}" ${t.guide_id == g.id ? 'selected' : ''}>${g.username}</option>`).join('')
+                        : '';
+                        
+                    let guideSelect = `<select class="form-select form-select-sm" onchange="assignGuide(${t.id}, this.value)">
+                        <option value="">Select Guide</option>
+                        ${guideOptions}
+                    </select>`;
+
+                    return `
+                    <tr>
+                        <td>${t.id}</td>
+                        <td><span class="badge bg-info">${t.academic_year || 'N/A'}</span></td>
+                        <td><span class="badge bg-primary">${t.semester || 'N/A'}</span></td>
+                        <td>
+                            <a href="#" class="fw-bold text-decoration-none" onclick="showTeamDetails(${t.id})">
+                                ${t.name} ${t.is_solo ? '<span class="badge bg-secondary ms-1">Solo</span>' : ''}
+                            </a>
+                            ${t.edit_request ? `<br><span class="badge bg-danger mt-1"><i class="fas fa-exclamation-circle me-1"></i>Edit Requested by ${t.edit_request === 'student' ? 'Student' : t.edit_request === 'guide' ? 'Guide' : 'System'}</span>` : ''}
+                        </td>
+                        <td>${t.project_title || '<em>Not submitted</em>'}</td>
+                        <td><span class="badge ${t.status === 'approved' ? 'bg-success' : 'bg-warning'}">${t.status || 'pending'}</span></td>
+                        <td>${guideSelect}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('Team', ${t.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `}).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No teams found in this department.</td></tr>';
+            }
+        }
+
+        async function createGuide(e) {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('name', document.getElementById('guide-name').value);
+            fd.append('email', document.getElementById('guide-email').value);
+            fd.append('password', document.getElementById('guide-password').value);
+            
+            const req = await fetch(`${API_URL}?action=createGuide`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+            });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Staff added successfully!', 'success');
+                e.target.reset();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('createGuideModal')).hide();
+                loadStats();
+                loadGuidesList();
+                loadTeams();
+            } else {
+                showToast('Error: ' + res.message, 'error');
+            }
+        }
+
+        async function assignGuide(teamId, guideId) {
+            const fd = new FormData();
+            fd.append('team_id', teamId);
+            fd.append('guide_id', guideId);
+            
+            const req = await fetch(`${API_URL}?action=assignGuide`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+            });
+            const res = await req.json();
+            if (res.success) {
+                showToast(guideId ? 'Guide assigned successfully!' : 'Guide unassigned.', 'success');
+            } else {
+                showToast('Error: ' + res.message, 'error');
+            }
+        }
+
+        async function loadStudents() {
+            const secId = document.getElementById('filter-section').value;
+            const guideId = document.getElementById('filter-guide').value;
+            
+            const tbody = document.getElementById('students-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading students...</td></tr>';
+            
+            if (guidesList.length === 0) await loadGuides();
+            if (sectionsList.length === 0) await loadSections();
+            
+            let url = `${API_URL}?action=getHodStudents`;
+            if (secId) url += `&section_id=${secId}`;
+            if (guideId) url += `&guide_id=${guideId}`;
+            const req = await fetch(url, { credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                if (res.students.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-user-graduate me-2 text-muted"></i>No students found in this department.</td></tr>';
+                } else {
+                    tbody.innerHTML = res.students.map(s => {
+                        const sectionOptions = sectionsList.map(sec => 
+                            `<option value="${sec.id}" ${s.section_id == sec.id ? 'selected' : ''}>${sec.name}</option>`
+                        ).join('');
+                        
+                        const guideOptions = guidesList.map(g => 
+                            `<option value="${g.id}" ${s.guide_id == g.id ? 'selected' : ''}>${g.username}</option>`
+                        ).join('');
+                        
+                        const userActive = s.is_active !== 0;
+                        return `
+                            <tr>
+                                <td><strong>${s.username}</strong><br><small class="text-muted">${s.email}</small></td>
+                                <td>
+                                    <select class="form-select form-select-sm" onchange="assignSection(${s.id}, this.value)">
+                                        <option value="">N/A</option>
+                                        ${sectionOptions}
+                                    </select>
+                                </td>
+                                <td>${s.roll_number}</td>
+                                <td><span class="badge ${userActive ? 'bg-success' : 'bg-danger'}">${userActive ? 'Active' : 'Inactive'}</span></td>
+                                <td>${s.team_name || '<em class="text-muted">No team</em>'}</td>
+                                <td>
+                                    ${s.team_id 
+                                        ? `<select class="form-select form-select-sm" onchange="assignGuideFromStudent(${s.id}, this.value)">
+                                            <option value="">-- Select Guide --</option>
+                                            ${guideOptions}
+                                           </select>`
+                                        : `<span class="badge bg-warning text-dark" title="Student must have a team before a guide can be assigned"><i class="fas fa-exclamation-circle me-1"></i>No team yet</span>`
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm ${userActive ? 'btn-outline-warning' : 'btn-outline-success'}" 
+                                            onclick="toggleUserStatusByHod('Student', ${s.user_id}, '${s.username}', ${userActive})"
+                                            title="${userActive ? 'Deactivate' : 'Activate'}">
+                                        <i class="fas ${userActive ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle me-2"></i>${res.message || 'Failed to load students.'}</td></tr>`;
+            }
+        }
+        
+        async function assignSection(studentId, sectionId) {
+            const fd = new FormData();
+            fd.append('student_id', studentId);
+            fd.append('section_id', sectionId);
+            
+            const req = await fetch(`${API_URL}?action=assignSection`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                // Done. Dashboard will reflect changes on next load or if we want to be fancy, we can reload.
+                // console.log('Section assigned');
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        async function resetFilters() {
+            document.getElementById('filter-section').value = '';
+            document.getElementById('filter-guide').value = '';
+            loadStudents();
+        }
+
+        async function loadSections() {
+            if (guidesList.length === 0) await loadGuides();
+            const req = await fetch(`${API_URL}?action=getSections`, { credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                sectionsList = res.sections;
+                const tbody = document.getElementById('sections-tbody');
+                tbody.innerHTML = res.sections.map(s => {
+                    const guideOptions = guidesList.map(g => 
+                        `<option value="${g.id}" ${s.coordinator_id === g.id ? 'selected' : ''}>${g.username}</option>`
+                    ).join('');
+                    
+                    return `
+                        <tr>
+                            <td>${s.id}</td>
+                            <td><strong>${s.name}</strong></td>
+                            <td>
+                                <select class="form-select form-select-sm" onchange="assignGuideToSection(${s.id}, this.value)">
+                                    <option value="">Select Coordinator</option>
+                                    ${guideOptions}
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                // Update student filter
+                const secFilter = document.getElementById('filter-section');
+                if (secFilter && secFilter.options.length <= 1) {
+                    res.sections.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        secFilter.appendChild(opt);
+                    });
+                }
+            }
+        }
+
+        async function assignGuideFromStudent(studentId, guideId) {
+            const fd = new FormData();
+            fd.append('student_id', studentId);
+            fd.append('guide_id', guideId);
+            
+            const req = await fetch(`${API_URL}?action=assignGuideToStudentTeam`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast(guideId ? 'Guide assigned to team!' : 'Guide unassigned from team.', 'success');
+                loadStudents();
+                loadTeams();
+            } else {
+                showToast('Error: ' + (res.message || 'Failed to assign guide.'), 'error');
+            }
+        }
+
+        async function assignGuideToSection(sectionId, guideId) {
+            const fd = new FormData();
+            fd.append('section_id', sectionId);
+            fd.append('guide_id', guideId);
+            
+            const req = await fetch(`${API_URL}?action=assignGuideToSection`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                // Done. Dashboard will reflect changes on next load.
+                loadStats(); // Stats might change if we consider teams
+                loadTeams(); // Reload teams to show new guides
+            } else {
+                alert(res.message);
+            }
+        }
+
+        document.getElementById('section-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('name', document.getElementById('section-name').value);
+            fd.append('coordinator_id', document.getElementById('section-coordinator').value);
+            
+            const req = await fetch(`${API_URL}?action=createSection`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Section created!', 'success');
+                e.target.reset();
+                bootstrap.Modal.getInstance(document.getElementById('createSectionModal')).hide();
+                loadSections();
+            } else {
+                showToast(res.message, 'error');
+            }
+        });
+
+        async function loadGuidesList() {
+            const tbody = document.getElementById('guides-tbody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Loading guides...</td></tr>';
+            const req = await fetch(`${API_URL}?action=getGuides`, { credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                tbody.innerHTML = res.guides.map(g => {
+                    const userActive = g.is_active !== 0;
+                    return `
+                        <tr>
+                            <td>${g.username}</td>
+                            <td>${g.email}</td>
+                            <td><span class="badge ${userActive ? 'bg-success' : 'bg-danger'}">${userActive ? 'Active' : 'Inactive'}</span></td>
+                            <td>
+                                <button class="btn btn-sm ${userActive ? 'btn-outline-warning' : 'btn-outline-success'}" 
+                                        onclick="toggleUserStatusByHod('Guide', ${g.user_id}, '${g.username}', ${userActive})"
+                                        title="${userActive ? 'Deactivate' : 'Activate'}">
+                                    <i class="fas ${userActive ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `}).join('');
+            }
+        }
+
+        async function toggleUserStatusByHod(type, userId, name, currentActive) {
+            const action = currentActive ? 'deactivate' : 'activate';
+            const ok = await showConfirm(`Are you sure you want to ${action} ${type} "${name}"?`, `${action.charAt(0).toUpperCase()+action.slice(1)} ${type}`);
+            if (!ok) return;
+            const fd = new FormData();
+            fd.append('target_user_id', userId);
+            fd.append('status', currentActive ? 0 : 1);
+            const req = await fetch(`${API_URL}?action=toggleUserStatus`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast(res.message, 'success');
+                if (type === 'Student') loadStudents();
+                if (type === 'Guide') { loadGuidesList(); loadTeams(); }
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        async function deleteItem(type, id) {
+            const ok = await showConfirm(`This ${type} will be permanently deleted.`, `Delete ${type}`);
+            if (!ok) return;
+            const fd = new FormData();
+            const action = `delete${type}`;
+            const key = `${type.toLowerCase()}_id`;
+            fd.append(key, id);
+
+            const req = await fetch(`${API_URL}?action=${action}`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast(res.message, 'success');
+                if (type === 'Team') loadTeams();
+                if (type === 'Student') loadStudents();
+                if (type === 'Guide') { loadGuidesList(); loadTeams(); }
+            } else {
+                showToast('Error: ' + res.message, 'error');
+            }
+        }
+
+        async function showTeamDetails(teamId) {
+            try {
+                const req = await fetch(`${API_URL}?action=getTeamDetails&team_id=${teamId}`, { credentials: 'include' });
+                const res = await req.json();
+                
+                if (res.success) {
+                    const t = res.team;
+                    const members = res.members;
+                    const p = res.project;
+                    const e = res.evaluation;
+                    
+                    let html = `
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3" style="border-color:var(--card-border)!important"><i class="fas fa-users me-2"></i>Team Members</h5>
+                            <div class="list-group">
+                                ${members.map(m => `
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>${m.username}</strong> ${m.is_leader ? '<span class="badge bg-warning ms-1">Leader</span>' : ''}<br>
+                                                <small class="text-muted">${m.roll_number} | ${m.email}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3" style="border-color:var(--card-border)!important"><i class="fas fa-user-tie me-2"></i>Guide Details</h5>
+                            <p class="mb-0">
+                                <strong>Name:</strong> ${t.guide_name || '<span class="text-danger">Not Assigned</span>'}<br>
+                                <strong>Email:</strong> ${t.guide_email || '-'}
+                            </p>
+                        </div>
+                    `;
+                    
+                    if (p) {
+                        html += `
+                            <div class="mb-4">
+                                <h5 class="border-bottom pb-2 mb-3" style="border-color:var(--card-border)!important"><i class="fas fa-project-diagram me-2"></i>Project Details</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p><strong>Title:</strong> ${p.title}</p>
+                                        <p><strong>Semester:</strong> <span class="badge bg-primary">${p.semester || 'N/A'}</span></p>
+                                        <p>
+                                            <strong>Status:</strong> <span class="badge bg-primary uppercase">${p.status}</span>
+                                            ${p.edit_request ? `<span class="badge bg-danger ms-2"><i class="fas fa-clock me-1"></i>Edit Requested by ${p.edit_request === 'student' ? 'Student' : p.edit_request === 'guide' ? 'Guide' : 'System'}</span>` : ''}
+                                        </p>
+                                        ${p.edit_reason ? `<div class="mb-2 p-2 rounded" style="background:rgba(239,68,68,0.08); border-left:3px solid var(--danger);"><strong>Reason for request:</strong><br>${escapeHtml(p.edit_reason)}</div>` : ''}
+                                        <p><strong>Tech Stack:</strong> ${p.tech_stack}</p>
+                                        ${p.screenshot_path ? `
+                                            <div class="mb-3">
+                                                <strong>Screenshot:</strong><br>
+                                                <img src="${SCREENSHOTS_BASE_URL}/${p.screenshot_path}" 
+                                                     class="mt-2 rounded border" 
+                                                     style="max-width:200px; cursor:pointer; transition:transform 0.2s;" 
+                                                     onclick="viewFullScreenshot('${SCREENSHOTS_BASE_URL}/${p.screenshot_path}')"
+                                                     onmouseover="this.style.transform='scale(1.05)'"
+                                                     onmouseout="this.style.transform='scale(1)'"
+                                                     alt="Project Screenshot">
+                                            </div>
+                                        ` : ''}
+                                        <p><strong>Abstract:</strong><br><small>${p.abstract}</small></p>
+                                        ${p.github_link ? `<p><strong>GitHub:</strong> <a href="${p.github_link}" target="_blank" class="text-primary">${p.github_link}</a></p>` : ''}
+                                        ${p.website_link ? `<p><strong>Website:</strong> <a href="${escapeHtml(p.website_link)}" target="_blank" rel="noopener noreferrer" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>${escapeHtml(p.website_link)}</a></p>` : ''}
+                                        ${p.file_path ? `<p><strong>File:</strong> <a href="${FILES_BASE_URL}/${p.file_path}" target="_blank" class="btn btn-sm btn-outline-primary mt-2"><i class="fas fa-download me-1"></i>Download Project</a></p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Add buttons for HOD to grant edit/resubmit option if approved
+                        if (p.status.toLowerCase() === 'approved') {
+                            html += `
+                            <div class="mb-4 text-end">
+                                <button class="btn btn-warning btn-sm me-2" onclick="changeProjectStatus(${p.id}, 'resubmit')">Grant Resubmit</button>
+                            </div>
+                            `;
+                        }
+                    } else {
+                        html += `
+                            <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>No project submitted yet.</div>
+                        `;
+                    }
+                    
+                    if (e) {
+                         html += `
+                            <div class="mb-4">
+                                <h5 class="border-bottom pb-2 mb-3" style="border-color:var(--card-border)!important"><i class="fas fa-star me-2"></i>Evaluation & Marks</h5>
+                                <div class="card" style="border-color:rgba(16,185,129,0.3)">
+                                    <div class="card-body">
+                                        <p><strong>Marks Awarded:</strong> <span class="h4" style="color:var(--success)">${e.marks}</span> / 100</p>
+                                        <p><strong>Feedback:</strong><br><em>${e.feedback || 'No feedback provided.'}</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('teamDetailContent').innerHTML = html;
+                    document.getElementById('teamDetailTitle').innerText = 'Details: ' + t.name;
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('teamDetailsModal'));
+                    modal.show();
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load team details.', 'error');
+            }
+        }
+
+        async function changeProjectStatus(id, status) {
+            const ok = await showConfirm('Are you sure you want to grant the resubmission option?', 'Confirm Action');
+            if (!ok) return;
+
+            const fd = new FormData();
+            fd.append('project_id', id);
+            fd.append('status', status);
+            
+            const req = await fetch(`${API_URL}?action=updateProjectStatus`, { method: 'POST', body: fd, credentials: 'include' });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Status updated successfully', 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('teamDetailsModal'));
+                if (modal) modal.hide();
+                loadTeams();
+            } else {
+                showToast('Error: ' + res.message, 'error');
+            }
+        }
+
+        async function createStudent(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const req = await fetch(`${API_URL}?action=createStudentByHod`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+            });
+            const res = await req.json();
+            if (res.success) {
+                showToast('Student account created successfully!', 'success');
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('createStudentModal')).hide();
+                e.target.reset();
+                loadStats();
+                loadStudents();
+            } else {
+                showToast('Error: ' + res.message, 'error');
+            }
+        }
+
+        async function initDashboard() {
+            try {
+                // Load critical lists first
+                await loadGuides();
+                await loadSections();
+                
+                // Then load data dependent on these lists
+                await loadStats();
+                await loadTeams();
+                await loadStudents();
+                
+                // Load the secondary list of guides
+                loadGuidesList(); 
+            } catch (err) {
+                console.error("Initialization error:", err);
+            }
+        }
+
+        initDashboard();
+
+        // ---- HOD Reports ----
+        let hodReportData = [];
+
+        async function showHodReports() {
+            const modal = new bootstrap.Modal(document.getElementById('hodReportsModal'));
+            modal.show();
+            await fetchHodReportData();
+        }
+
+        async function fetchHodReportData() {
+            const tbody = document.getElementById('hod-report-body');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading reports...</td></tr>';
+            try {
+                const req = await fetch(`${API_URL}?action=getHodProjectReport`, { credentials: 'include' });
+                const res = await req.json();
+                if (res.success) {
+                    hodReportData = res.data;
+                    // Populate year filter
+                    const years = [...new Set(res.data.map(r => r.academic_year))].filter(Boolean).sort().reverse();
+                    const yearSel = document.getElementById('hod-report-year-filter');
+                    if (yearSel.options.length <= 1) {
+                        years.forEach(y => {
+                            const opt = document.createElement('option');
+                            opt.value = y; opt.textContent = y;
+                            yearSel.appendChild(opt);
+                        });
+                    }
+                    renderHodReports();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${res.message}</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to fetch report data</td></tr>';
+            }
+        }
+
+        function getBadgeClass(status) {
+            switch(status) {
+                case 'approved': return 'bg-success';
+                case 'rejected': return 'bg-danger';
+                case 'resubmit': return 'bg-info';
+                case 'edit_option': return 'bg-secondary';
+                default: return 'bg-warning text-dark';
+            }
+        }
+
+        function renderHodReports() {
+            const yearFilter = document.getElementById('hod-report-year-filter').value;
+            const statusFilter = document.getElementById('hod-report-status-filter').value;
+            const semFilter = document.getElementById('hod-report-semester-filter') ? document.getElementById('hod-report-semester-filter').value : '';
+            const tbody = document.getElementById('hod-report-body');
+            let filtered = hodReportData;
+            if (yearFilter) filtered = filtered.filter(r => r.academic_year === yearFilter);
+            if (statusFilter) filtered = filtered.filter(r => (r.status || 'pending') === statusFilter);
+            if (semFilter) filtered = filtered.filter(r => (r.semester || '') === semFilter);
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No projects match the selected filters.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(r => `
+                <tr>
+                    <td><span class="badge bg-info">${r.academic_year || 'N/A'}</span></td>
+                    <td><span class="badge bg-primary">${r.semester || 'N/A'}</span></td>
+                    <td><strong>${r.team_name}</strong></td>
+                    <td><small>${r.members || '-'}</small></td>
+                    <td>${r.project_title || '<em class="text-muted">Not submitted</em>'}</td>
+                    <td>${r.guide_name || '-'}</td>
+                    <td><span class="badge ${getBadgeClass(r.status)}">${r.status || 'pending'}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function exportHodReportCsv() {
+            const yearFilter = document.getElementById('hod-report-year-filter').value;
+            const statusFilter = document.getElementById('hod-report-status-filter').value;
+            const semFilter = document.getElementById('hod-report-semester-filter') ? document.getElementById('hod-report-semester-filter').value : '';
+            let filtered = hodReportData;
+            if (yearFilter) filtered = filtered.filter(r => r.academic_year === yearFilter);
+            if (statusFilter) filtered = filtered.filter(r => (r.status || 'pending') === statusFilter);
+            if (semFilter) filtered = filtered.filter(r => (r.semester || '') === semFilter);
+            if (filtered.length === 0) { showToast('No data to export.', 'error'); return; }
+            const csvEscape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const headers = ['Year', 'Semester', 'Team', 'Members', 'Project Title', 'Guide', 'Status'];
+            const rows = filtered.map(r => [
+                csvEscape(r.academic_year || 'N/A'),
+                csvEscape(r.semester || 'N/A'),
+                csvEscape(r.team_name),
+                csvEscape(r.members || ''),
+                csvEscape(r.project_title || ''),
+                csvEscape(r.guide_name || ''),
+                csvEscape(r.status || 'pending')
+            ].join(','));
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const yearLabel = yearFilter || 'All_Years';
+            const statusLabel = statusFilter || 'All_Status';
+            a.download = `HOD_Report_${yearLabel}_${statusLabel}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+    <!-- Create Student Modal -->
+    <div class="modal fade" id="createStudentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-graduate me-2" style="color:#38bdf8"></i>Create New Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createStudentForm" onsubmit="createStudent(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Roll Number</label>
+                            <input type="text" name="roll" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Academic Year</label>
+                            <select name="academic_year" id="student-academic-year" class="form-select" required>
+                                <option value="" disabled selected>Select Year</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Default Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100 text-white">Create Student Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOD Reports Modal -->
+    <div class="modal fade" id="hodReportsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-chart-bar me-2" style="color:var(--warning)"></i>Department Projects Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+                        <div class="d-flex gap-2">
+                            <select id="hod-report-year-filter" class="form-select w-auto" onchange="renderHodReports()">
+                                <option value="">All Years</option>
+                            </select>
+                            <select id="hod-report-semester-filter" class="form-select w-auto" onchange="renderHodReports()">
+                                <option value="">All Semesters</option>
+                                <option value="Semester 1">Semester 1</option>
+                                <option value="Semester 2">Semester 2</option>
+                                <option value="Semester 3">Semester 3</option>
+                                <option value="Semester 4">Semester 4</option>
+                                <option value="Semester 5">Semester 5</option>
+                                <option value="Semester 6">Semester 6</option>
+                                <option value="Semester 7">Semester 7</option>
+                                <option value="Semester 8">Semester 8</option>
+                            </select>
+                            <select id="hod-report-status-filter" class="form-select w-auto" onchange="renderHodReports()">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="resubmit">Resubmit</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="fetchHodReportData()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="exportHodReportCsv()">
+                                <i class="fas fa-file-csv me-1"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Semester</th>
+                                    <th>Team</th>
+                                    <th>Members</th>
+                                    <th>Project Title</th>
+                                    <th>Guide</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hod-report-body">
+                                <tr><td colspan="7" class="text-center">Loading report data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Details Modal -->
+    <div class="modal fade" id="teamDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="teamDetailTitle">Team Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="teamDetailContent" style="max-height: 70vh; overflow-y: auto;">
+                    <!-- Content injected via JS -->
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Populate Academic Year dropdown — runs after modal HTML is in the DOM
+        (function() {
+            const sel = document.getElementById('student-academic-year');
+            if (!sel) return;
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear + 1; i >= 2000; i--) {
+                const nextYear = (i + 1).toString().slice(-2);
+                const label = `${i}-${nextYear}`;
+                const opt = document.createElement('option');
+                opt.value = label;
+                opt.textContent = label;
+                if (i === currentYear) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        })();
+
+        function viewFullScreenshot(src) {
+            document.getElementById('fullScreenshotImg').src = src;
+            new bootstrap.Modal(document.getElementById('screenshotModal')).show();
+        }
+    </script>
+</body>
+
+<!-- Screenshot Modal -->
+<div class="modal fade" id="screenshotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="background:transparent; border:none;">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute" style="top:-30px; right:0;" data-bs-dismiss="modal" aria-label="Close"></button>
+                <img id="fullScreenshotImg" src="" alt="Full Screenshot" style="width:100%; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="refresh" content="0; url=frontend/pages/login.html" />
+    <title>Redirecting...</title>
+</head>
+
+<body>
+    <p>Redirecting to <a href="frontend/pages/login.html">login page</a>...</p>
+    <script>
+        if (window.location.protocol === 'file:') {
+            window.location.href = "http://localhost:5000/";
+        } else {
+            window.location.href = "frontend/pages/login.html";
+        }
+    </script>
+</body>
+
+</html>
